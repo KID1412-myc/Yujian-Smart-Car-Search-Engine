@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的收藏 - 驭·见</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .skeleton-card {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <a href="车系.html" class="hover:text-blue-500">首页</a>
+        <span class="text-gray-400">加载中...</span>
+    </nav>
+</header>
+
+<section class="max-w-6xl mx-auto p-6 w-full">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <h2 class="text-3xl font-bold text-gray-800">我的收藏</h2>
+        <button id="add-all-to-compare-btn"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition w-full md:w-auto"
+                style="display: none;">
+            一键加入对比
+        </button>
+    </div>
+</section>
+
+<main class="max-w-6xl mx-auto p-6 w-full flex-grow">
+    <div id="initial-state" class="text-center text-gray-500 py-10">
+        <p>正在检查登录状态...</p>
+    </div>
+
+    <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    </div>
+</main>
+
+<footer class="bg-gray-800 text-gray-300 text-center py-6 mt-10">
+    © 2025 驭见 智能车辆搜索引擎 | 数据来源：易车
+</footer>
+<script src="config.js"></script>
+<script>
+    let currentFavoriteList = [];
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const user = await checkAuthentication();
+
+            if (!user) {
+                return;
+            }
+            setupNavbar(user.nickname);
+            await loadFavorites();
+
+        } catch (error) {
+            console.error('页面加载失败:', error);
+            const initialState = document.getElementById('initial-state');
+            initialState.innerHTML = `<p class="text-red-500">页面加载失败: ${error.message}</p>`;
+        }
+    });
+
+    async function checkAuthentication() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'}
+            });
+
+            if (response.status === 401) {
+                localStorage.removeItem('userNickname');
+                window.location.href = `login.html?redirect=favorites.html`; // 跳转到登录页
+                return null;
+            }
+
+            if (!response.ok) {
+                throw new Error('无法验证用户身份');
+            }
+
+            const user = await response.json();
+            localStorage.setItem('userNickname', user.nickname || user.username);
+            return user;
+
+        } catch (error) {
+            console.error('认证检查失败:', error);
+            localStorage.removeItem('userNickname');
+            window.location.href = 'login.html';
+            return null;
+        }
+    }
+
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-medium text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="font-bold text-blue-600 hover:underline">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+            `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="font-bold text-blue-600 hover:underline">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+            `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.reload();
+    }
+
+    async function getFavoritesListFromAPI() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'}
+            });
+
+            if (response.status === 401) {
+                window.location.href = 'login.html';
+                return [];
+            }
+            if (!response.ok) {
+                throw new Error('获取收藏列表失败');
+            }
+
+            const list = await response.json();
+            return list;
+
+        } catch (e) {
+            console.error("无法从API获取收藏列表:", e);
+            return [];
+        }
+    }
+
+    async function removeFromFavorites(modelId) {
+        if (!modelId) return;
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites/remove`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model_id: modelId})
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || '移除失败');
+            }
+            await loadFavorites();
+
+        } catch (error) {
+            alert(`移除收藏失败: ${error.message}`);
+        }
+    }
+
+    async function fetchAllModelData(modelItems) {
+        const fetchPromises = modelItems.map(item =>
+            fetch(`${API_BASE_URL}/get-model-config?model_id=${encodeURIComponent(item.id)}&series_name=${encodeURIComponent(item.series)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error(`车型 ${item.id} 加载失败`);
+                    return res.json();
+                })
+        );
+
+        const results = await Promise.allSettled(fetchPromises);
+
+        const successfulData = results
+            .filter(res => res.status === 'fulfilled')
+            .map(res => res.value);
+
+        const failedModels = results
+            .filter(res => res.status === 'rejected')
+            .length;
+
+        if (failedModels > 0) {
+            alert(`${failedModels} 个已收藏的车型数据加载失败，可能已被移除。`);
+        }
+        return successfulData;
+    }
+
+    function renderLoadingSkeletons(count) {
+        const resultsGrid = document.getElementById('results-grid');
+        let skeletonHTML = '';
+        for (let i = 0; i < count; i++) {
+            skeletonHTML += `
+            <div class="skeleton-card bg-white shadow rounded-lg p-4">
+              <div class="rounded-lg mb-3 h-48 w-full object-cover bg-gray-200"></div>
+              <div class="h-6 rounded bg-gray-200 w-3/4 mb-2"></div>
+              <div class="flex flex-wrap gap-2 text-xs mb-3">
+                <div class="h-4 rounded-full bg-gray-200 w-16"></div>
+                <div class="h-4 rounded-full bg-gray-200 w-20"></div>
+                <div class="h-4 rounded-full bg-gray-200 w-12"></div>
+              </div>
+              <div class="h-5 rounded bg-gray-200 w-24 mt-2"></div>
+            </div>
+            `;
+        }
+        resultsGrid.innerHTML = skeletonHTML;
+        document.getElementById('initial-state').style.display = 'none';
+        resultsGrid.style.display = 'grid';
+    }
+
+    function renderFavoriteCards(models) {
+        const resultsGrid = document.getElementById('results-grid');
+
+        if (models.length === 0) {
+            resultsGrid.innerHTML = '';
+            const initialState = document.getElementById('initial-state');
+            initialState.innerHTML = '<p class="text-center text-gray-500 py-10">收藏的车型数据加载失败。</p>';
+            initialState.style.display = 'block';
+            document.getElementById('add-all-to-compare-btn').style.display = 'none';
+            return;
+        }
+
+        resultsGrid.innerHTML = '';
+
+        models.forEach(model => {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = "favorite-card bg-white shadow rounded-lg p-4 flex flex-col justify-between relative";
+
+            const modelName = model['车型名称'] || '未知车型';
+            const seriesName = model['车系名称'] || '未知车系';
+            const powerType = model['动力类型'] || '未知';
+            let colorClass = 'bg-gray-100 text-gray-800';
+            if (powerType === '纯电') colorClass = 'bg-green-100 text-green-800';
+            else if (['插电混动', '增程式'].includes(powerType)) colorClass = 'bg-blue-100 text-blue-800';
+            else if (['燃油', '油电混合', '轻混系统'].includes(powerType)) colorClass = 'bg-red-100 text-red-800';
+
+            const seatCount = model['车身_座位数'];
+            const segment = model['基本信息_级别'];
+
+            cardWrapper.innerHTML = `
+                <div>
+                  <a href="configDetails.html?model_id=${encodeURIComponent(modelName)}&series_name=${encodeURIComponent(seriesName)}&model_name=${encodeURIComponent(modelName)}">
+                    <img src="${model['图片链接'] || 'https://via.placeholder.com/400x300.png?text=No+Image'}" alt="${modelName}" class="rounded-lg mb-3 h-48 w-full object-cover transition-transform hover:scale-105">
+
+                    <h3 class="text-xl font-semibold mb-2">${seriesName} | ${modelName}</h3>
+                  </a>
+                  <div class="flex flex-wrap gap-2 text-xs mb-3">
+                      <span class="${colorClass} font-medium px-2.5 py-0.5 rounded-full">${powerType}</span>
+                      <span class="bg-gray-100 text-gray-800 font-medium px-2.5 py-0.5 rounded-full">${model['基本信息_厂商指导价'] || '价格未知'}</span>
+                      <span class="bg-yellow-100 text-yellow-800 font-medium px-2.5 py-0.5 rounded-full">${model['车身类型'] || '类型未知'}</span>
+                      ${seatCount ? `<span class="bg-purple-100 text-purple-800 font-medium px-2.5 py-0.5 rounded-full">${seatCount}</span>` : ''}
+                      ${segment ? `<span class="bg-indigo-100 text-indigo-800 font-medium px-2.5 py-0.5 rounded-full">${segment}</span>` : ''}
+                  </div>
+                </div>
+                <div class="mt-4 pt-4 border-t flex justify-between items-center">
+                    <a href="configDetails.html?model_id=${encodeURIComponent(modelName)}&series_name=${encodeURIComponent(seriesName)}&model_name=${encodeURIComponent(modelName)}" class="text-blue-500 hover:underline font-semibold text-sm">
+                        查看详情 &rarr;
+                    </a>
+                    <button class="remove-btn text-red-500 hover:text-red-700 text-sm font-medium" data-model-id="${modelName}">
+                        × 移除收藏
+                    </button>
+                </div>
+            `;
+            resultsGrid.appendChild(cardWrapper);
+        });
+    }
+
+    async function loadFavorites() {
+        const resultsGrid = document.getElementById('results-grid');
+        const initialState = document.getElementById('initial-state');
+        const compareBtn = document.getElementById('add-all-to-compare-btn');
+        initialState.innerHTML = '<p class="text-center text-gray-500 py-10">正在加载收藏列表...</p>';
+        initialState.style.display = 'block';
+        const modelItems = await getFavoritesListFromAPI();
+        currentFavoriteList = modelItems;
+
+        if (modelItems.length === 0) {
+            resultsGrid.innerHTML = '';
+            resultsGrid.style.display = 'none';
+            initialState.innerHTML = '<p class="text-center text-gray-500 py-10">您还没有收藏任何车型。</p>';
+            initialState.style.display = 'block';
+            compareBtn.style.display = 'none';
+        } else {
+            renderLoadingSkeletons(modelItems.length);
+            compareBtn.style.display = 'block';
+            const modelsData = await fetchAllModelData(modelItems);
+            if (modelsData.length > 0) {
+                renderFavoriteCards(modelsData);
+            } else {
+                resultsGrid.innerHTML = '';
+                resultsGrid.style.display = 'none';
+                initialState.innerHTML = '<p class="text-center text-red-500 py-10">加载收藏车型数据失败。可能车型信息已更新。</p>';
+                initialState.style.display = 'block';
+                compareBtn.style.display = 'none';
+            }
+        }
+    }
+
+
+    document.getElementById('add-all-to-compare-btn').addEventListener('click', () => {
+        if (currentFavoriteList.length > 0) {
+            sessionStorage.setItem('comparisonList', JSON.stringify(currentFavoriteList));
+            window.location.href = 'compare.html';
+        } else {
+            alert("您的收藏夹是空的！");
+        }
+    });
+
+    document.getElementById('results-grid').addEventListener('click', (e) => {
+        const removeButton = e.target.closest('.remove-btn');
+        if (removeButton) {
+            const modelId = removeButton.dataset.modelId;
+            if (confirm(`您确定要从收藏中移除 ${modelId} 吗？`)) {
+                removeFromFavorites(modelId);
+            }
+        }
+    });
+
+</script>
+
+</body>
+</html>

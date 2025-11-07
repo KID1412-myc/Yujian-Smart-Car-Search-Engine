@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>管理后台 - 驭·见</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .fixed {
+            position: fixed;
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <span class="text-gray-400">加载中...</span>
+    </nav>
+</header>
+
+<main class="max-w-7xl mx-auto p-8 mt-8">
+    <h1 class="text-4xl font-bold text-gray-800 mb-6">系统管理后台</h1>
+
+    <div id="admin-content" class="hidden">
+        <div class="mb-4 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <button id="tab-users"
+                        class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600"
+                        aria-current="page">
+                    用户管理 (核心)
+                </button>
+                <button id="tab-content"
+                        class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    内容管理 (车辆)
+                </button>
+                <button id="tab-config"
+                        class="tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    AI 配置 (核心)
+                </button>
+            </nav>
+        </div>
+
+        <div id="panel-users" class="tab-panel">
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">用户列表</h2>
+                    <div id="user-message-container" class="mb-4"></div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ID
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                用户名 (登录)
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                昵称 (显示)
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                角色
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                操作
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="user-list-tbody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">正在加载用户数据...</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-content" class="tab-panel hidden space-y-8">
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">内容管理 (车辆数据)</h2>
+                    <div class="flex mb-4">
+                        <input type="text" id="content-search-input"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="搜索车型、车系 (留空可查看所有)...">
+                        <button id="content-search-button"
+                                class="px-4 py-2 font-medium text-white bg-blue-600 rounded-r-md hover:bg-blue-700 focus:outline-none">
+                            搜索
+                        </button>
+                    </div>
+                    <div id="content-message-container" class="mb-4"></div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                ES Doc ID
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                车型名称
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                车系名称
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                文档类型
+                            </th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                操作
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody id="content-list-tbody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+                                请输入关键词搜索，或留空搜索所有文档。
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="content-pagination-container"
+                     class="p-4 flex justify-between items-center border-t border-gray-200">
+                </div>
+            </div>
+
+            <div class="bg-white shadow-lg rounded-lg p-8 space-y-8">
+
+                <div class="border-b pb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">1. 服务器数据采集与导入</h2>
+                    <p class="text-sm text-gray-600 mb-4">
+                        在此处粘贴一个或多个“易车”品牌主页 URL，点击“+”可添加多个。点击“开始”后，服务器将在后台异步执行爬虫任务，并在下方实时显示日志。
+                    </p>
+
+                    <div id="url-inputs-container" class="space-y-3 mb-4">
+                        <div class="flex space-x-2">
+                            <input type="text"
+                                   class="crawler-url-input flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="例如: https://car.yiche.com/tesla/">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-start space-x-8">
+                        <div class="flex-shrink-0 space-x-2">
+                            <button id="add-url-btn"
+                                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                                + 添加一个 URL
+                            </button>
+                            <button id="run-crawler-btn"
+                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-bold">
+                                开始执行爬虫
+                            </button>
+                        </div>
+
+                        <div id="post-crawl-options" class="flex-shrink-0 space-x-3 flex items-center hidden">
+                            <button id="stop-crawler-btn"
+                                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 font-bold">
+                                &#9209; 强制停止
+                            </button>
+
+                            <a id="download-latest-btn" href="#"
+                               class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                                &#x21E9; 下载最新数据
+                            </a>
+                            <button id="import-latest-btn"
+                                    class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
+                                &#x21E7; 导入 ES
+                            </button>
+                        </div>
+                    </div>
+                    <pre id="crawler-status"
+                         class="mt-4 p-4 bg-gray-900 text-white text-sm rounded-md h-32 overflow-y-auto whitespace-pre-wrap"></pre>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">2. 上传 CSV 并导入</h2>
+                    <p class="text-sm text-gray-600 mb-4">
+                        点击“选择文件”，文件将出现在下方“待处理列表”中。您可以分次导入或删除。
+                    </p>
+
+                    <div class="mb-4">
+                        <label for="csv-upload-input"
+                               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-bold cursor-pointer">
+                            &#x21E9; 选择文件 (可多选)
+                        </label>
+                        <input type="file" id="csv-upload-input" multiple accept=".csv" class="hidden">
+                    </div>
+
+                    <div class="mb-4 border border-gray-200 rounded-md">
+                        <h3 class="text-lg font-semibold text-gray-700 bg-gray-50 p-3 border-b">
+                            待处理文件列表 (<span id="file-staging-count">0</span>)
+                        </h3>
+                        <ul id="upload-staging-area" class="divide-y divide-gray-200">
+                            <li id="file-staging-placeholder" class="p-3 text-gray-500">
+                                请点击上方按钮选择文件...
+                            </li>
+                        </ul>
+                    </div>
+
+                    <pre id="importer-status"
+                         class="mt-4 p-4 bg-gray-900 text-white text-sm rounded-md h-32 overflow-y-auto whitespace-pre-wrap"></pre>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="panel-config" class="tab-panel hidden">
+            <div class="bg-white shadow-lg rounded-lg p-8">
+                <div class="flex justify-between items-center mb-6">
+
+                    <div class="flex items-center space-x-4">
+                        <h2 class="text-2xl font-bold text-gray-800">AI 特性映射管理</h2>
+                        <button id="ai-config-toggle"
+                                class="px-2 py-1 text-sm text-blue-600 border border-blue-500 rounded hover:bg-blue-50"
+                                title="点击折叠/展开">
+                            [ 折叠 ]
+                        </button>
+                    </div>
+                    <div class="space-x-2">
+                        <button id="ai-config-load"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            刷新配置
+                        </button>
+                        <button id="ai-config-add"
+                                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            + 新增特性
+                        </button>
+                        <button id="ai-config-save"
+                                class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 font-bold">
+                            保存所有更改
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ai-config-collapsible-area">
+                    <div id="ai-config-message" class="mb-4"></div>
+
+                    <div id="ai-config-container" class="space-y-6">
+                        <p class="text-gray-500">正在加载配置...</p>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-300">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">查看 API 调用</h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                        点击下方按钮将在新标签页中跳转至DeepSeek AI 服务提供商的后台，以便您查看 API
+                        密钥的使用情况和账户余额。
+                    </p>
+                    <div>
+                        <a href="https://platform.deepseek.com/usage"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="inline-block px-5 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                            跳转至DeepSeekAPI
+                        </a>
+
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-300">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">高危操作密码管理 (仅核心管理员)</h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                        此密码用于保护【删除用户】、【删除数据】和【保存AI配置】等操作。
+                        如果未设置，上述操作将被禁止。
+                    </p>
+                    <div class="max-w-md space-y-3">
+                        <div>
+                            <label for="high-risk-password-input" class="block text-sm font-medium text-gray-700">新密码
+                                (或重置密码)</label>
+                            <input type="password" id="high-risk-password-input"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500"
+                                   placeholder="至少6位字符">
+                        </div>
+
+                        <div class="mt-3"><label for="high-risk-password-confirm-input"
+                                                 class="block text-sm font-medium text-gray-700">确认新密码</label>
+                            <input type="password" id="high-risk-password-confirm-input"
+                                   class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500"
+                                   placeholder="再次输入新密码">
+                        </div>
+                        <div id="high-risk-message" class="text-sm"></div>
+                        <div>
+                            <button id="save-high-risk-password-btn"
+                                    class="px-4 py-2 font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none">
+                                保存高危密码
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="permission-denied" class="hidden bg-white shadow-lg rounded-lg p-8 text-center">
+        <h2 class="text-2xl font-bold text-red-600 mb-4">权限不足</h2>
+        <p class="text-gray-700">您必须是 <span class="font-bold">管理员 (admin)</span> 或 <span class="font-bold">核心管理员 (core_admin)</span>
+            才能访问此页面。</p>
+        <a href="车系.html"
+           class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition">返回首页</a>
+    </div>
+    <div id="password-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg font-medium text-gray-900" id="modal-title">高危操作确认</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500 mb-4" id="modal-description">
+                        请输入高危操作密码以继续此操作
+                    </p>
+                    <input type="password" id="modal-password-input"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500"
+                           placeholder="请输入密码">
+                    <p id="modal-error" class="text-red-500 text-sm mt-2 hidden"></p>
+                </div>
+                <div class="flex justify-center space-x-4 mt-4">
+                    <button id="modal-cancel"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                        取消
+                    </button>
+                    <button id="modal-confirm"
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                        确认
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="config.js"></script>
+<script>
+    let globalRole = null;
+    let crawlerPollTimer = null;
+
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-bold text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                    <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                    <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                    <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                    <a href="about.html" class="hover:text-blue-500">关于</a>
+                    ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                    <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                    <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+                `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                    <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                    <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                    <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                    <a href="about.html" class="hover:text-blue-500">关于</a>
+                    <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                    <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+                `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.href = '车系.html';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        globalRole = localStorage.getItem('userRole');
+        setupNavbar();
+        if (globalRole !== 'admin' && globalRole !== 'core_admin') {
+            document.getElementById('permission-denied').classList.remove('hidden');
+            return;
+        }
+        document.getElementById('admin-content').classList.remove('hidden');
+        if (globalRole === 'core_admin') {
+            loadUsers();
+        } else if (globalRole === 'admin') {
+            document.getElementById('tab-config').classList.add('hidden');
+            document.getElementById('panel-config').classList.add('hidden');
+            loadUsers();
+        }
+        setupTabs();
+    });
+
+    const aiConfigPanel = document.getElementById('panel-config');
+    const aiConfigContainer = document.getElementById('ai-config-container');
+    const loadAiBtn = document.getElementById('ai-config-load');
+    const addAiBtn = document.getElementById('ai-config-add');
+    const saveAiBtn = document.getElementById('ai-config-save');
+    const aiConfigMsg = document.getElementById('ai-config-message');
+
+    let aiConfigLoaded = false;
+
+    document.getElementById('tab-config').addEventListener('click', () => {
+        if (!aiConfigLoaded && globalRole === 'core_admin') {
+            loadAiConfig();
+            aiConfigLoaded = true;
+        }
+    });
+
+    loadAiBtn.addEventListener('click', loadAiConfig);
+    addAiBtn.addEventListener('click', () => createAiConfigCard('', {fields: [], search_terms: []}, true));
+    saveAiBtn.addEventListener('click', saveAiConfig);
+
+    const aiConfigToggleBtn = document.getElementById('ai-config-toggle');
+    const aiConfigCollapsibleArea = document.getElementById('ai-config-collapsible-area');
+
+    aiConfigToggleBtn.addEventListener('click', () => {
+        const isHidden = aiConfigCollapsibleArea.classList.toggle('hidden');
+        if (isHidden) {
+            aiConfigToggleBtn.textContent = '[ 展开 ]';
+            aiConfigToggleBtn.setAttribute('title', '点击展开');
+        } else {
+            aiConfigToggleBtn.textContent = '[ 折叠 ]';
+            aiConfigToggleBtn.setAttribute('title', '点击折叠/展开');
+        }
+    });
+
+
+    async function loadAiConfig() {
+        aiConfigContainer.innerHTML = '<p class="text-gray-500">正在加载配置...</p>';
+        aiConfigMsg.innerHTML = '';
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/ai_config`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || `加载失败 (HTTP ${response.status})`);
+            }
+
+            const configData = await response.json();
+            aiConfigContainer.innerHTML = '';
+            const sortedKeys = Object.keys(configData).sort();
+
+            if (sortedKeys.length === 0) {
+                aiConfigContainer.innerHTML = '<p class="text-gray-500">配置为空，请点击 "新增特性"。</p>';
+            }
+
+            sortedKeys.forEach(key => {
+                createAiConfigCard(key, configData[key]);
+            });
+
+            showAiMessage('配置加载成功！', 'success');
+
+        } catch (error) {
+            console.error('加载 AI 配置失败:', error);
+            aiConfigContainer.innerHTML = `<p class="text-red-500">加载配置失败: ${error.message}</p>`;
+            showAiMessage(`加载配置失败: ${error.message}`, 'error');
+        }
+    }
+
+    async function saveAiConfig() {
+        if (!confirm('【【【高危操作】】】\n您确定要保存并覆盖服务器上的 AI 配置文件吗？\n错误的配置将导致 AI 聊天功能异常！')) {
+            return;
+        }
+
+        showPasswordModal(
+            {
+                title: '保存AI配置确认',
+                description: '请输入高危操作密码以确认保存AI配置'
+            },
+            async (password, error) => {
+                if (error) {
+                    showAiMessage(error, 'warning');
+                    return;
+                }
+
+                const newConfigData = {};
+                const cards = aiConfigContainer.querySelectorAll('.ai-config-card');
+                let hasError = false;
+
+                cards.forEach(card => {
+                    const keyInput = card.querySelector('.config-key');
+                    const fieldsInput = card.querySelector('.config-fields');
+                    const termsInput = card.querySelector('.config-terms');
+
+                    keyInput.classList.remove('border-red-500');
+                    fieldsInput.classList.remove('border-red-500');
+
+                    const key = keyInput.value.trim();
+                    if (!key) {
+                        keyInput.classList.add('border-red-500');
+                        hasError = true;
+                    }
+
+                    const fields = fieldsInput.value.split(',')
+                        .map(f => f.trim())
+                        .filter(f => f.length > 0);
+
+                    const terms = termsInput.value.split(',')
+                        .map(t => t.trim())
+                        .filter(t => t.length > 0);
+
+                    if (fields.length === 0) {
+                        fieldsInput.classList.add('border-red-500');
+                        hasError = true;
+                    }
+
+                    if (key) {
+                        if (newConfigData.hasOwnProperty(key)) {
+                            showAiMessage(`保存失败：特性名称 "${key}" 重复！`, 'error');
+                            keyInput.classList.add('border-red-500');
+                            hasError = true;
+                        } else {
+                            if (!hasError) {
+                                newConfigData[key] = {
+                                    fields: fields,
+                                    search_terms: terms
+                                };
+                            }
+                        }
+                    }
+                });
+
+                if (hasError) {
+                    showAiMessage('保存失败，请检查所有高亮的错误项。', 'error');
+                    return;
+                }
+                newConfigData.high_risk_password = password;
+
+                saveAiBtn.disabled = true;
+                saveAiBtn.textContent = '保存中...';
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/admin/ai_config`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(newConfigData)
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || '保存失败');
+                    }
+
+                    showAiMessage('保存成功！配置已在服务器生效。', 'success');
+                    setTimeout(loadAiConfig, 1000); // 重新加载
+
+                } catch (error) {
+                    console.error('保存 AI 配置失败:', error);
+                    showAiMessage(`保存失败: ${error.message}`, 'error');
+                } finally {
+                    saveAiBtn.disabled = false;
+                    saveAiBtn.textContent = '保存所有更改';
+                }
+            }
+        );
+    }
+
+    function createAiConfigCard(key, data, isNew = false) {
+        const card = document.createElement('div');
+        card.className = 'ai-config-card p-4 border border-gray-300 rounded-lg shadow-sm bg-gray-50';
+        if (isNew) {
+            card.classList.add('border-green-400', 'border-2');
+        }
+
+        card.innerHTML = `
+                <div class="grid grid-cols-6 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-gray-700">特性名称 (Key)</label>
+                        <input type="text" value="${escapeHTML(key)}"
+                               class="config-key mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="例如: 四驱">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">关联字段 (fields)</label>
+                        <input type="text" value="${escapeHTML(data.fields.join(', '))}"
+                               class="config-fields mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="逗号分隔, 例如: 底盘转向_驱动形式.keyword">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">搜索词 (search_terms)</label>
+                        <input type="text" value="${escapeHTML(data.search_terms.join(', '))}"
+                               class="config-terms mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="逗号分隔, 例如: 四驱, AWD">
+                    </div>
+                </div>
+                <div class="mt-3 text-right">
+                    <button class="ai-config-delete text-red-600 hover:text-red-900 font-medium">
+                        删除此项
+                    </button>
+                </div>
+            `;
+
+        card.querySelector('.ai-config-delete').addEventListener('click', () => {
+            if (confirm(`确定要删除特性 "${key || '这个新项目'}" 吗？`)) {
+                card.remove();
+                showAiMessage('已删除一个项目 (尚未保存)', 'warning');
+            }
+        });
+
+        if (isNew) {
+            aiConfigContainer.prepend(card);
+            card.querySelector('.config-key').focus();
+        } else {
+            aiConfigContainer.appendChild(card);
+        }
+    }
+
+    function showAiMessage(message, type = 'error') {
+        const container = document.getElementById('ai-config-message');
+        let colorClass = 'text-red-600 bg-red-100 p-3 rounded-md';
+        if (type === 'success') {
+            colorClass = 'text-green-600 bg-green-100 p-3 rounded-md';
+        } else if (type === 'warning') {
+            colorClass = 'text-yellow-700 bg-yellow-100 p-3 rounded-md';
+        }
+        container.innerHTML = `<p class="${colorClass}">${message}</p>`;
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 4000);
+    }
+
+    function escapeHTML(str) {
+        if (typeof str !== 'string') return str;
+        return str.replace(/[&<>"']/g, function (match) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[match];
+        });
+    }
+
+    const saveHighRiskBtn = document.getElementById('save-high-risk-password-btn');
+    const highRiskInput = document.getElementById('high-risk-password-input');
+    const highRiskMsg = document.getElementById('high-risk-message');
+
+    saveHighRiskBtn.addEventListener('click', async () => {
+        const newPassword = highRiskInput.value;
+        const confirmInput = document.getElementById('high-risk-password-confirm-input');
+        const confirmPassword = confirmInput.value;
+        if (newPassword.length < 6) {
+            showHighRiskMessage('密码长度不能少于6位', 'error');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            showHighRiskMessage('两次输入的密码不一致', 'error');
+            confirmInput.value = '';
+            confirmInput.focus();
+            return;
+        }
+
+        if (!confirm('您确定要设置/重置高危操作密码吗？')) return;
+
+        saveHighRiskBtn.disabled = true;
+        saveHighRiskBtn.textContent = '保存中...';
+        showHighRiskMessage('保存中...', 'loading');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/system/set_high_risk_password`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({password: newPassword})
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '保存失败');
+            }
+
+            showHighRiskMessage('高危密码设置成功！', 'success');
+            highRiskInput.value = ''; // 清空
+            document.getElementById('high-risk-password-confirm-input').value = '';
+
+        } catch (error) {
+            showHighRiskMessage(`保存失败: ${error.message}`, 'error');
+        } finally {
+            saveHighRiskBtn.disabled = false;
+            saveHighRiskBtn.textContent = '保存高危密码';
+        }
+    });
+
+    function showHighRiskMessage(message, type = 'error') {
+        let colorClass = 'text-red-500';
+        if (type === 'success') colorClass = 'text-green-500';
+        else if (type === 'loading') colorClass = 'text-gray-500';
+
+        highRiskMsg.innerHTML = `<p class="${colorClass}">${message}</p>`;
+
+        if (type !== 'loading') {
+            setTimeout(() => {
+                highRiskMsg.innerHTML = '';
+            }, 3000);
+        }
+    }
+
+    function setupTabs() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('.tab-panel');
+
+        let tabToActivate = null;
+        const hash = window.location.hash;
+
+        if (hash) {
+            const tabIdFromHash = hash.replace('#panel-', 'tab-');
+            const tabFromHash = document.getElementById(tabIdFromHash);
+            if (tabFromHash && !tabFromHash.classList.contains('hidden')) {
+                tabToActivate = tabFromHash;
+            }
+        }
+
+        if (!tabToActivate) {
+            tabToActivate = document.querySelector('.tab-btn:not(.hidden)');
+        }
+
+        if (tabToActivate) {
+            activateTab(tabToActivate, tabs, panels);
+        }
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => activateTab(tab, tabs, panels));
+        });
+    }
+
+    function activateTab(tab, tabs, panels) {
+
+        tabs.forEach(t => {
+            t.classList.remove('border-blue-500', 'text-blue-600');
+            t.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            t.removeAttribute('aria-current');
+        });
+
+        tab.classList.add('border-blue-500', 'text-blue-600');
+        tab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+        tab.setAttribute('aria-current', 'page');
+
+        panels.forEach(p => p.classList.add('hidden'));
+
+        const panelId = tab.id.replace('tab-', 'panel-');
+        document.getElementById(panelId).classList.remove('hidden');
+        window.location.hash = panelId;
+    }
+
+    async function loadUsers() {
+        const tbody = document.getElementById('user-list-tbody');
+        tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">正在加载用户数据...</td></tr>';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || `无法加载用户列表 (HTTP ${response.status})`);
+            }
+
+            const groupedUsers = await response.json();
+            tbody.innerHTML = '';
+
+            let userCount = 0;
+
+            const renderGroup = (users, title) => {
+                if (!users || users.length === 0) return;
+                userCount += users.length;
+                tbody.innerHTML += `
+                        <tr class="bg-gray-100">
+                            <td colspan="5" class="px-6 py-3 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">${title} (${users.length})</td>
+                        </tr>
+                    `;
+
+                users.forEach(user => {
+                    const isBanned = user.is_banned;
+                    const banReason = user.ban_reason || '无';
+                    const tr = document.createElement('tr');
+                    if (isBanned) {
+                        tr.classList.add('bg-red-50', 'opacity-70');
+                    }
+
+                    let canEditRole = false;
+                    let canBan = false;
+                    let canDelete = false;
+
+                    if (globalRole === 'core_admin' && user.role !== 'core_admin') {
+                        canEditRole = true;
+                        canBan = true;
+                        canDelete = true;
+                    }
+
+                    if (globalRole === 'admin' && user.role === 'user') {
+                        canEditRole = true;
+                        canBan = true;
+                    }
+
+                    tr.innerHTML = `
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${isBanned ? 'text-gray-500' : 'text-gray-900'}">${user.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ${isBanned ? 'text-gray-500' : 'text-gray-800'}">
+                                ${user.username}
+                                ${isBanned ? `<span class="ml-2 text-xs font-bold text-red-600">[已封禁]</span><p class="text-xs text-red-500 truncate" title="${banReason}">原因: ${banReason}</p>` : ''}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm ${isBanned ? 'text-gray-500' : 'text-gray-800'}">${user.nickname}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <select id="role-select-${user.id}" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" ${!canEditRole ? 'disabled' : ''}>
+                                    <option value="user" ${user.role === 'user' ? 'selected' : ''}>user (普通用户)</option>
+                                    <option value="admin" ${user.role === 'admin' ? 'selected' : ''} ${globalRole === 'admin' ? 'hidden' : ''}>admin (管理员)</option>
+                                    ${user.role === 'core_admin' ? '<option value="core_admin" selected>core_admin (核心)</option>' : ''}
+                                </select>
+                                <button onclick="handleRoleChange(${user.id})" class="ml-2 text-blue-600 hover:text-blue-900 ${!canEditRole ? 'opacity-50 cursor-not-allowed' : ''}" ${!canEditRole ? 'disabled' : ''}>
+                                    保存
+                                </button>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                ${isBanned ?
+                        `<button onclick="handleUnbanUser(${user.id}, '${user.username}')" class="text-green-600 hover:text-green-900 ${!canBan ? 'opacity-50 cursor-not-allowed' : ''}" ${!canBan ? 'disabled' : ''}>
+                                        解封
+                                    </button>` :
+                        `<button onclick="handleBanUser(${user.id}, '${user.username}')" class="text-yellow-600 hover:text-yellow-900 ${!canBan ? 'opacity-50 cursor-not-allowed' : ''}" ${!canBan ? 'disabled' : ''}>
+                                        封禁
+                                    </button>`
+                    }
+                                <button onclick="handleDeleteUser(${user.id}, '${user.username}')" class="ml-4 text-red-600 hover:text-red-900 ${!canDelete ? 'opacity-50 cursor-not-allowed' : ''}" ${!canDelete ? 'disabled' : ''}>
+                                    删除
+                                </button>
+                            </td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            };
+
+            renderGroup(groupedUsers.core_admin, "核心管理员");
+            renderGroup(groupedUsers.admin, "管理员");
+            renderGroup(groupedUsers.user, "普通用户");
+
+            if (userCount === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">系统中没有可管理的用户。</td></tr>';
+            }
+
+        } catch (error) {
+            console.error('加载用户失败:', error);
+            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">加载用户失败: ${error.message}</td></tr>`;
+        }
+    }
+
+    async function handleRoleChange(userId) {
+        const selectEl = document.getElementById(`role-select-${userId}`);
+        const newRole = selectEl.value;
+
+        if (confirm(`确定要将用户 ID ${userId} 的角色修改为 ${newRole} 吗？`)) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users/update_role`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: userId,
+                        new_role: newRole
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || '更新失败');
+                }
+
+                showMessage('角色更新成功！', 'success');
+                loadUsers();
+
+            } catch (error) {
+                console.error('角色更新失败:', error);
+                showMessage(`角色更新失败: ${error.message}`, 'error');
+                loadUsers();
+            }
+        }
+    }
+
+    async function handleBanUser(userId, username) {
+        const reason = prompt(`请输入封禁用户 ${username} (ID: ${userId}) 的原因：`, "违规操作");
+        if (reason) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users/ban`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: userId, reason: reason || '无特定原因'})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || '封禁失败');
+                showMessage(`用户 ${username} 已被封禁。`, 'success');
+                loadUsers();
+            } catch (error) {
+                showMessage(`封禁失败: ${error.message}`, 'error');
+            }
+        }
+    }
+
+    async function handleUnbanUser(userId, username) {
+        if (confirm(`确定要解封用户 ${username} (ID: ${userId}) 吗？`)) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/admin/users/unban`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_id: userId})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || '解封失败');
+                showMessage(`用户 ${username} 已被解封。`, 'success');
+                loadUsers();
+            } catch (error) {
+                showMessage(`解封失败: ${error.message}`, 'error');
+            }
+        }
+    }
+
+    async function handleDeleteUser(userId, username) {
+        if (confirm(`【【【高危操作】】】\n您确定要永久删除用户 ${username} (ID: ${userId}) 吗？\n此操作不可撤销！`)) {
+            showPasswordModal(
+                {
+                    title: '删除用户确认',
+                    description: `请输入高危操作密码以确认删除用户 ${username}`
+                },
+                async (password, error) => {
+                    if (error) {
+                        showMessage(error, 'warning');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+                            method: 'DELETE',
+                            credentials: 'include',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({high_risk_password: password})
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.error || '删除失败');
+                        }
+
+                        showMessage('用户删除成功！正在刷新列表...', 'success');
+                        setTimeout(loadUsers, 1500);
+
+                    } catch (error) {
+                        console.error('删除用户失败:', error);
+                        showMessage(`删除用户失败: ${error.message}`, 'error');
+                    }
+                }
+            );
+        }
+    }
+
+    function showMessage(message, type = 'error') {
+        const container = document.getElementById('user-message-container');
+        const colorClass = type === 'success' ? 'text-green-600 bg-green-100 p-3 rounded-md' : 'text-red-600 bg-red-100 p-3 rounded-md';
+        container.innerHTML = `<p class="${colorClass}">${message}</p>`;
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 3000);
+    }
+
+    const contentSearchInput = document.getElementById('content-search-input');
+    const contentSearchButton = document.getElementById('content-search-button');
+    const contentTbody = document.getElementById('content-list-tbody');
+    const contentMsg = document.getElementById('content-message-container');
+    const contentPagination = document.getElementById('content-pagination-container');
+
+    let currentContentQuery = '';
+    let currentContentPage = 1;
+
+    contentSearchButton.addEventListener('click', () => {
+        currentContentQuery = contentSearchInput.value;
+        currentContentPage = 1;
+        searchVehicles(currentContentQuery, currentContentPage);
+    });
+
+    document.getElementById('tab-content').addEventListener('click', () => {
+        if (contentTbody.innerText.includes("请输入")) {
+            searchVehicles('', 1);
+        }
+    });
+
+    async function searchVehicles(query, page) {
+        contentTbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">正在加载数据...</td></tr>`;
+        contentMsg.innerHTML = '';
+        currentContentQuery = query;
+        currentContentPage = page;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/vehicles/search?q=${encodeURIComponent(query)}&page=${page}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || `加载失败 (HTTP ${response.status})`);
+            }
+
+            const data = await response.json();
+            renderVehicleTable(data.hits);
+            renderVehiclePagination(data.total, data.page, data.per_page);
+
+            if (data.total === 0 && query) {
+                contentTbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">未找到与 "${escapeHTML(query)}" 相关的文档。</td></tr>`;
+            } else if (data.total === 0 && !query) {
+                contentTbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">ES 索引中没有数据。</td></tr>`;
+            }
+
+        } catch (error) {
+            console.error('搜索车辆失败:', error);
+            contentTbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-red-500">加载失败: ${error.message}</td></tr>`;
+        }
+    }
+
+    function renderVehicleTable(hits) {
+        contentTbody.innerHTML = '';
+        hits.forEach(hit => {
+            const doc = hit._source;
+            const docId = hit._id;
+            const modelName = doc.车型名称 || doc.车系名称 || '(无名称)';
+            const isKoubei = doc.is_koubei_row === true;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" title="${docId}">${docId.substring(0, 10)}...</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${doc.车型名称 || '<span class="text-gray-400">N/A</span>'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">${doc.车系名称 || '<span class="text-gray-400">N/A</span>'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${isKoubei ? '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">口碑</span>' : '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">参数</span>'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="handleVehicleEdit('${docId}')" class="text-indigo-600 hover:text-indigo-900" >
+                            编辑
+                        </button>
+                        <button onclick="handleVehicleDelete('${docId}', '${escapeHTML(modelName)}')" class="ml-4 text-red-600 hover:text-red-900">
+                            删除
+                        </button>
+                    </td>
+                `;
+            contentTbody.appendChild(tr);
+        });
+    }
+
+    function renderVehiclePagination(total, page, perPage) {
+        contentPagination.innerHTML = '';
+        if (total === 0) return;
+
+        const totalPages = Math.ceil(total / perPage);
+
+        let paginationHTML = `
+                <p class="text-sm text-gray-700">
+                    显示第 <span class="font-medium">${(page - 1) * perPage + 1}</span>
+                    到 <span class="font-medium">${Math.min(page * perPage, total)}</span>
+                    条, 共 <span class="font-medium">${total}</span> 条
+                </p>
+            `;
+
+        paginationHTML += '<div class="space-x-2">';
+
+        if (page > 1) {
+            paginationHTML += `<button onclick="searchVehicles('${escapeHTML(currentContentQuery)}', ${page - 1})" class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">上一页</button>`;
+        } else {
+            paginationHTML += `<button class="px-3 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 text-gray-400 cursor-not-allowed" disabled>上一页</button>`;
+        }
+
+        paginationHTML += `<span class="px-2 text-sm">第 ${page} / ${totalPages} 页</span>`;
+
+        if (page < totalPages) {
+            paginationHTML += `<button onclick="searchVehicles('${escapeHTML(currentContentQuery)}', ${page + 1})" class="px-3 py-1 border border-gray-300 rounded-md text-sm hover:bg-gray-50">下一页</button>`;
+        } else {
+            paginationHTML += `<button class="px-3 py-1 border border-gray-300 rounded-md text-sm bg-gray-100 text-gray-400 cursor-not-allowed" disabled>下一页</button>`;
+        }
+
+        paginationHTML += '</div>';
+        contentPagination.innerHTML = paginationHTML;
+    }
+
+    function handleVehicleEdit(docId) {
+        window.location.href = `admin_edit_vehicle.html?id=${encodeURIComponent(docId)}`;
+    }
+
+    async function handleVehicleDelete(docId, modelName) {
+        const cleanName = modelName.replace(/<.*?>/g, '');
+        if (confirm(`【【【高危操作】】】\n您确定要永久删除 ES 文档：\n\nID: ${docId}\n车型: ${cleanName}\n\n此操作不可撤销！`)) {
+            showPasswordModal(
+                {
+                    title: '删除数据确认',
+                    description: `请输入高危操作密码以确认删除数据 ${cleanName}`
+                },
+                async (password, error) => {
+                    if (error) {
+                        showContentMessage(error, 'warning');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/admin/vehicles/delete`, {
+                            method: 'POST',
+                            credentials: 'include',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                doc_id: docId,
+                                high_risk_password: password
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (!response.ok) {
+                            throw new Error(data.error || '删除失败');
+                        }
+
+                        showContentMessage(`文档 "${cleanName}" (ID: ${docId}) 删除成功！`, 'success');
+                        searchVehicles(currentContentQuery, currentContentPage);
+
+                    } catch (error) {
+                        console.error('删除车辆失败:', error);
+                        showContentMessage(`删除失败: ${error.message}`, 'error');
+                    }
+                }
+            );
+        }
+    }
+
+
+    function showContentMessage(message, type = 'error') {
+        const container = document.getElementById('content-message-container');
+        const colorClass = type === 'success' ? 'text-green-600 bg-green-100 p-3 rounded-md' : 'text-red-600 bg-red-100 p-3 rounded-md';
+        container.innerHTML = `<p class="${colorClass}">${message}</p>`;
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 3000);
+    }
+
+    function showTaskMessage(elementId, message, type = 'info') {
+        const statusBox = document.getElementById(elementId);
+        let colorClass = 'text-gray-300'; // info
+        if (type === 'success') {
+            colorClass = 'text-green-400';
+        } else if (type === 'error') {
+            colorClass = 'text-red-400';
+        }
+
+        const timestamp = new Date().toLocaleTimeString();
+        const newMessage = `<p class="${colorClass}">[${timestamp}] ${message}</p>`;
+
+        statusBox.innerHTML = newMessage + statusBox.innerHTML; // 插入到最前面
+    }
+
+    function addUrlInputBox() {
+        const container = document.getElementById('url-inputs-container');
+        const newDiv = document.createElement('div');
+        newDiv.className = 'flex space-x-2';
+
+        newDiv.innerHTML = `
+            <input type="text"
+                   class="crawler-url-input flex-grow px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="输入另一个品牌 URL...">
+            <button class="remove-url-btn px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    title="移除此行">
+                &times;
+            </button>
+        `;
+
+        newDiv.querySelector('.remove-url-btn').addEventListener('click', () => {
+            container.removeChild(newDiv);
+        });
+
+        container.appendChild(newDiv);
+        newDiv.querySelector('input').focus();
+    }
+
+    async function handleRunCrawler() {
+        const btn = document.getElementById('run-crawler-btn');
+        const statusBoxId = 'crawler-status';
+
+        const urlInputs = document.querySelectorAll('.crawler-url-input');
+        const urls = Array.from(urlInputs)
+            .map(input => input.value.trim())
+            .filter(url => url.length > 0 && url.startsWith('http'));
+
+        if (urls.length === 0) {
+            showTaskMessage(statusBoxId, '错误：请至少输入一个有效的 URL。', 'error');
+            return;
+        }
+
+        showTaskMessage(statusBoxId, `正在请求服务器启动爬虫，目标 ${urls.length} 个...`, 'info');
+        document.getElementById('crawler-status').textContent = '等待服务器响应...';
+
+        btn.disabled = true;
+        btn.textContent = '任务启动中...';
+
+        if (logPollTimer) {
+            clearInterval(logPollTimer);
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/system/run_crawler`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({urls: urls})
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '启动失败');
+            }
+
+            showTaskMessage(statusBoxId, `【启动成功】 ${data.message}`, 'success');
+            startLogPoller();
+
+        } catch (error) {
+            showTaskMessage(statusBoxId, `启动失败: ${error.message}`, 'error');
+            btn.disabled = false;
+            btn.textContent = '开始执行爬虫';
+        }
+    }
+
+    function startCrawlerStatusPoller() {
+        const btn = document.getElementById('run-crawler-btn');
+        btn.disabled = true;
+        btn.textContent = '爬虫运行中...';
+        if (crawlerPollTimer) {
+            clearInterval(crawlerPollTimer);
+        }
+        checkCrawlerStatus();
+        crawlerPollTimer = setInterval(checkCrawlerStatus, 5000);
+    }
+
+    let logPollTimer = null;
+
+    function startLogPoller() {
+        if (logPollTimer) clearInterval(logPollTimer);
+
+        pollCrawlerLogs();
+        logPollTimer = setInterval(pollCrawlerLogs, 2000);
+    }
+
+    async function pollCrawlerLogs() {
+        const statusBox = document.getElementById('crawler-status');
+        const statusBoxId = 'crawler-status';
+
+        let response;
+        let data = {};
+
+        try {
+            response = await fetch(`${API_BASE_URL}/api/admin/system/crawler_logs`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error(`后端返回错误 (HTTP ${response.status})`);
+            }
+
+            data = await response.json();
+
+            statusBox.textContent = data.logs || "等待日志输出...";
+            statusBox.scrollTop = statusBox.scrollHeight;
+
+            const currentStatus = data.status;
+            const btn = document.getElementById('run-crawler-btn');
+            const postCrawlOptions = document.getElementById('post-crawl-options');
+            const stopBtn = document.getElementById('stop-crawler-btn');
+            const downloadBtn = document.getElementById('download-latest-btn');
+            const importBtn = document.getElementById('import-latest-btn');
+
+            if (currentStatus !== 'running' && currentStatus !== 'starting') {
+                if (logPollTimer) clearInterval(logPollTimer);
+                logPollTimer = null;
+
+                btn.disabled = false;
+                btn.textContent = '开始执行爬虫';
+                stopBtn.style.display = 'none';
+
+                if (currentStatus === 'complete' || currentStatus === 'error') {
+                    postCrawlOptions.classList.remove('hidden');
+
+                    const filenameMatch = data.logs.match(/数据已保存为:\s*(.+)/);
+                    const dynamicFilename = filenameMatch ? filenameMatch[1].trim() : 'latest_crawl_output.csv';
+
+                    downloadBtn.href = `${API_BASE_URL}/api/admin/system/download_latest_csv`;
+                    downloadBtn.textContent = `⬇️ 下载 ${dynamicFilename}`;
+
+                    const isComplete = currentStatus === 'complete';
+
+                    downloadBtn.classList.toggle('opacity-50', !isComplete);
+                    downloadBtn.classList.toggle('cursor-not-allowed', !isComplete);
+
+                    importBtn.classList.toggle('opacity-50', !isComplete);
+                    importBtn.classList.toggle('cursor-not-allowed', !isComplete);
+                    importBtn.disabled = !isComplete;
+
+                } else {
+                    postCrawlOptions.classList.add('hidden');
+                }
+
+            } else {
+                btn.disabled = true;
+                btn.textContent = (currentStatus === 'starting' ? '正在初始化...' : '爬虫运行中...');
+                postCrawlOptions.classList.remove('hidden');
+                stopBtn.style.display = 'inline-block';
+
+                downloadBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                importBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                importBtn.disabled = true;
+
+                if (!logPollTimer) startLogPoller();
+            }
+
+        } catch (error) {
+            if (logPollTimer) clearInterval(logPollTimer);
+            logPollTimer = null;
+
+            const finalErrorMsg = (response && !response.ok) ? `后端返回非200状态码 (${response.status})` : error.message;
+
+            showTaskMessage(statusBoxId, `日志轮询失败: ${finalErrorMsg}。`, 'error');
+            document.getElementById('run-crawler-btn').disabled = false;
+            document.getElementById('run-crawler-btn').textContent = '开始执行爬虫';
+        }
+    }
+
+    async function checkCrawlerStatus() {
+        const statusBoxId = 'crawler-status';
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/system/crawler_status`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) throw new Error(`状态 API 请求失败 (HTTP ${response.status})`);
+
+            const data = await response.json();
+            const currentStatus = data.status;
+
+            if (currentStatus === 'running') {
+                startLogPoller();
+            } else {
+                pollCrawlerLogs();
+            }
+
+        } catch (error) {
+            showTaskMessage(statusBoxId, `初始化状态检查失败: ${error.message}。`, 'error');
+            document.getElementById('run-crawler-btn').disabled = false;
+            document.getElementById('run-crawler-btn').textContent = '开始执行爬虫';
+        }
+    }
+
+    async function handleImportLatest() {
+        if (!confirm('您确定要将服务器上最新的爬虫文件 (latest_crawl_output.csv) 导入到 ES 吗？')) {
+            return;
+        }
+
+        const btn = document.getElementById('import-latest-btn');
+        const statusBoxId = 'crawler-status';
+
+        btn.disabled = true;
+        btn.textContent = '导入中...';
+        showTaskMessage(statusBoxId, '正在请求服务器导入最新爬虫数据...', 'info');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/system/import_latest_csv`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '导入失败');
+            }
+
+            showTaskMessage(statusBoxId, `【导入成功】\n${data.message}`, 'success');
+
+        } catch (error) {
+            showTaskMessage(statusBoxId, `导入失败: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '将最新数据导入 ES';
+        }
+    }
+
+    async function handleStopCrawler() {
+        if (!confirm('【【【高危操作】】】\n您确定要强制停止在服务器上运行的爬虫进程吗？')) {
+            return;
+        }
+
+        const btn = document.getElementById('stop-crawler-btn');
+        const statusBoxId = 'crawler-status';
+
+        btn.disabled = true;
+        btn.textContent = '停止中...';
+        showTaskMessage(statusBoxId, '正在请求服务器停止任务...', 'info');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/system/stop_crawler`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '停止命令失败');
+            }
+
+            showTaskMessage(statusBoxId, `【任务已停止】 ${data.message}`, 'success');
+            checkCrawlerStatus();
+
+        } catch (error) {
+            showTaskMessage(statusBoxId, `停止失败: ${error.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '强制停止';
+        }
+    }
+
+    let stagedFiles = new Map();
+    const importerStatusBoxId = 'importer-status';
+
+    function handleFileSelection(event) {
+        const files = event.target.files;
+        if (!files) return;
+
+        let newFilesAdded = 0;
+        for (const file of files) {
+            if (!stagedFiles.has(file.name) && file.name.endsWith('.csv')) {
+                stagedFiles.set(file.name, file);
+                newFilesAdded++;
+            }
+        }
+
+        if (newFilesAdded > 0) {
+            showTaskMessage(importerStatusBoxId, `已添加 ${newFilesAdded} 个新文件到待处理列表。`, 'info');
+            renderStagingArea();
+        }
+
+        event.target.value = null;
+    }
+
+    function renderStagingArea() {
+        const container = document.getElementById('upload-staging-area');
+        const countSpan = document.getElementById('file-staging-count');
+
+        container.innerHTML = '';
+        countSpan.textContent = stagedFiles.size;
+
+        if (stagedFiles.size === 0) {
+            container.innerHTML = `
+                <li id="file-staging-placeholder" class="p-3 text-gray-500">
+                    请点击上方按钮选择文件...
+                </li>
+            `;
+            return;
+        }
+
+        stagedFiles.forEach((file, fileName) => {
+            const li = document.createElement('li');
+            li.className = 'p-3 flex justify-between items-center';
+            li.setAttribute('data-filename', fileName);
+
+            const fileSize = (file.size / 1024).toFixed(1) + ' KB';
+            li.innerHTML = `
+                <div>
+                    <span class="font-medium text-gray-800">${escapeHTML(fileName)}</span>
+                    <span class="text-sm text-gray-500 ml-2">(${fileSize})</span>
+                </div>
+                <div class="space-x-2">
+                    <button class="import-one-btn px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        导入
+                    </button>
+                    <button class="delete-staged-btn px-3 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-red-600">
+                        删除
+                    </button>
+                </div>
+            `;
+            container.appendChild(li);
+        });
+    }
+
+    function handleStagingAreaClick(event) {
+        const target = event.target;
+        const li = target.closest('li');
+        if (!li) return;
+
+        const fileName = li.getAttribute('data-filename');
+        if (!fileName) return;
+
+        if (target.classList.contains('delete-staged-btn')) {
+            stagedFiles.delete(fileName);
+            renderStagingArea();
+            showTaskMessage(importerStatusBoxId, `文件 "${fileName}" 已从列表移除。`, 'info');
+        }
+
+        if (target.classList.contains('import-one-btn')) {
+            importStagedFile(fileName, target);
+        }
+    }
+
+    async function importStagedFile(fileName, importButton) {
+        const file = stagedFiles.get(fileName);
+        if (!file) {
+            showTaskMessage(importerStatusBoxId, `错误：在暂存区找不到文件 ${fileName}。`, 'error');
+            return;
+        }
+
+        importButton.disabled = true;
+        importButton.textContent = '导入中...';
+        const deleteBtn = importButton.nextElementSibling;
+        if (deleteBtn) deleteBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('files[]', file);
+
+        showTaskMessage(importerStatusBoxId, `正在上传并导入 "${fileName}"...`, 'info');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/system/upload_and_import`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '导入失败');
+            }
+
+            showTaskMessage(importerStatusBoxId, `【导入成功】 "${fileName}"\n${data.message}`, 'success');
+            stagedFiles.delete(fileName);
+            renderStagingArea();
+
+        } catch (error) {
+            showTaskMessage(importerStatusBoxId, `导入 "${fileName}" 失败: ${error.message}`, 'error');
+            importButton.disabled = false;
+            importButton.textContent = '导入';
+            if (deleteBtn) deleteBtn.disabled = false;
+        }
+    }
+
+    function initCrawlerAndImporterListeners() {
+        document.getElementById('add-url-btn')?.addEventListener('click', addUrlInputBox);
+        document.getElementById('run-crawler-btn')?.addEventListener('click', handleRunCrawler);
+        document.getElementById('stop-crawler-btn')?.addEventListener('click', handleStopCrawler);
+        document.getElementById('import-latest-btn')?.addEventListener('click', handleImportLatest);
+        document.getElementById('csv-upload-input')?.addEventListener('change', handleFileSelection);
+        document.getElementById('upload-staging-area')?.addEventListener('click', handleStagingAreaClick);
+        checkCrawlerStatus();
+    }
+
+    let currentPasswordCallback = null;
+    let currentOperationData = null;
+
+    function initPasswordModal() {
+        const modal = document.getElementById('password-modal');
+        const cancelBtn = document.getElementById('modal-cancel');
+        const confirmBtn = document.getElementById('modal-confirm');
+        const passwordInput = document.getElementById('modal-password-input');
+        const errorMsg = document.getElementById('modal-error');
+        window.showPasswordModal = (operationData, callback) => {
+            currentPasswordCallback = callback;
+            currentOperationData = operationData;
+
+            document.getElementById('modal-title').textContent = operationData.title || '高危操作确认';
+            document.getElementById('modal-description').textContent = operationData.description || '请输入高危操作密码以继续此操作';
+
+            passwordInput.value = '';
+            errorMsg.textContent = '';
+            errorMsg.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+            passwordInput.focus();
+        };
+
+        function hideModal() {
+            modal.classList.add('hidden');
+            currentPasswordCallback = null;
+            currentOperationData = null;
+        }
+
+        cancelBtn.addEventListener('click', () => {
+            hideModal();
+            if (currentPasswordCallback) {
+                currentPasswordCallback(null, '操作已取消');
+            }
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            const password = passwordInput.value.trim();
+            if (!password) {
+                showModalError('请输入密码');
+                return;
+            }
+
+            if (currentPasswordCallback) {
+                currentPasswordCallback(password, null);
+            }
+            hideModal();
+        });
+
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmBtn.click();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                cancelBtn.click();
+            }
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cancelBtn.click();
+            }
+        });
+    }
+
+    function showModalError(message) {
+        const errorMsg = document.getElementById('modal-error');
+        errorMsg.textContent = message;
+        errorMsg.classList.remove('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initPasswordModal();
+        initCrawlerAndImporterListeners();
+    });
+</script>
+</body>
+</html>

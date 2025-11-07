@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <title>车型配置详情 - 驭·见</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #external-links-container {
+            transition-property: max-height;
+        }
+
+        .favorite-btn.favorited svg {
+            fill: currentColor;
+        }
+
+        .favorite-btn:not(.favorited) svg {
+            fill: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <a href="车系.html" class="hover:text-blue-500">首页</a>
+        <span class="text-gray-400">加载中...</span>
+    </nav>
+</header>
+<section class="max-w-6xl mx-auto mt-6 bg-white rounded-lg shadow overflow-hidden flex flex-col md:flex-row">
+    <div class="md:w-1/2">
+        <img id="model-image" src="https://via.placeholder.com/800x600.png?text=Loading+Image..." alt="车型图片"
+             class="w-full aspect-video md:aspect-auto md:h-full object-cover">
+    </div>
+    <div class="md:w-1/2 p-8">
+        <h2 id="model-name" class="text-3xl font-bold text-gray-800 mb-4">正在加载车型...</h2>
+
+        <div id="model-tags" class="flex flex-wrap gap-2 text-xs mb-4">
+            <span id="model-power-type" class="font-medium px-2.5 py-0.5 rounded-full">--</span>
+            <span id="model-body-type"
+                  class="bg-yellow-100 text-yellow-800 font-medium px-2.5 py-0.5 rounded-full">--</span>
+            <span id="model-seat-count"
+                  class="bg-purple-100 text-purple-800 font-medium px-2.5 py-0.5 rounded-full">--</span>
+            <span id="model-segment"
+                  class="bg-indigo-100 text-indigo-800 font-medium px-2.5 py-0.5 rounded-full">--</span>
+        </div>
+
+        <p class="text-blue-600 text-2xl font-semibold mb-6">
+            厂商指导价：<span id="model-price">--.--万</span>
+        </p>
+
+        <p class="text-gray-600 text-md mb-6" id="model-description">
+            详细参数和配置信息正在加载中...
+        </p>
+
+        <div class="flex items-center space-x-4 mb-4">
+            <button id="add-to-compare-btn"
+                    class="compare-btn bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition">
+                + 加入对比
+            </button>
+            <button id="add-to-favorite-btn"
+                    class="favorite-btn p-3 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-100 transition-colors"
+                    title="加入收藏">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path>
+                </svg>
+            </button>
+            <a href="compare.html" id="view-compare-link"
+               class="text-blue-600 hover:text-blue-800 font-semibold text-sm hidden">
+                查看对比列表 (<span id="compare-count">0</span>) &rarr;
+            </a>
+        </div>
+
+        <div class="mb-2">
+            <button id="toggle-external-links"
+                    class="text-blue-600 hover:text-blue-800 font-semibold text-sm inline-flex items-center">
+                获取更多信息？请点击
+                <span id="external-links-arrow" class="ml-1 transform transition-transform duration-300">&rarr;</span>
+            </button>
+        </div>
+        <div id="external-links-container"
+             class="mt-2 overflow-hidden transition-max-height duration-500 ease-in-out max-h-0">
+            <div class="bg-gray-200 p-4 rounded-lg space-y-3">
+                <a id="link-yiche" href="#" target="_blank"
+                   class="block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition text-center">访问
+                    易车 官网</a>
+                <a id="link-dcd" href="#" target="_blank"
+                   class="block bg-gray-700 hover:bg-gray-800 text-white px-5 py-2 rounded-lg font-medium transition text-center">访问
+                    懂车帝 官网</a>
+                <a id="link-autohome" href="#" target="_blank"
+                   class="block bg-gray-700 hover:bg-gray-800 text-white px-5 py-2 rounded-lg font-medium transition text-center">访问
+                    汽车之家 官网</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="max-w-6xl mx-auto mt-8 bg-white rounded-lg shadow p-8">
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">车辆参数配置</h3>
+    <div id="specs-grid"
+         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10 text-gray-700 leading-relaxed">
+        <p class="col-span-full text-center text-gray-500">正在加载详细配置...</p>
+    </div>
+    <div id="expand-button-container" class="mt-8 text-center" style="display: none;">
+        <button id="expand-button"
+                class="text-blue-600 hover:text-blue-800 font-semibold py-2 px-4 rounded-lg border border-blue-600 hover:bg-blue-50 transition-colors duration-200">
+            展开全部配置 &darr;
+        </button>
+    </div>
+</section>
+
+<section class="bg-gray-50 py-10 mt-10">
+    <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-2xl font-bold mb-4"> AI 智能分析</h2>
+        <p class="text-gray-600 mb-6">对这款车的配置有疑问？问问AI</p>
+        <textarea id="ai-prompt-textarea" class="w-full p-4 border rounded-lg" rows="3"
+                  placeholder="例如：这款车的保养成本怎么样？和同价位的XX车型比有什么优缺点？"></textarea>
+        <button id="ai-recommend-button"
+                class="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold">获取AI分析
+        </button>
+    </div>
+</section>
+<footer class="bg-gray-800 text-gray-300 text-center py-6 mt-10">
+    © 2025 驭见 智能车辆搜索引擎 | 数据来源：易车
+</footer>
+
+<script src="config.js"></script>
+<script>
+
+    let currentModelId = '';
+    let currentSeriesName = '';
+    let isUserLoggedIn = false;
+    let userFavoritesList = [];
+
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-medium text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="javascript:history.back()" id="nav-back-link" class="hover:text-blue-500">&larr; 返回</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+            `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="javascript:history.back()" id="nav-back-link" class="hover:text-blue-500">&larr; 返回</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+            `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.reload();
+    }
+
+    async function loadUserFavorites() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'}
+            });
+
+            if (response.status === 200) {
+                userFavoritesList = await response.json();
+                isUserLoggedIn = true;
+                console.log("用户收藏列表加载成功:", userFavoritesList);
+            } else {
+                isUserLoggedIn = false;
+                userFavoritesList = [];
+                console.log("用户未登录或获取收藏失败。");
+            }
+        } catch (e) {
+            console.error("无法连接到收藏夹API:", e);
+            isUserLoggedIn = false;
+            userFavoritesList = [];
+        }
+    }
+
+    async function apiAddFavorite(modelId, seriesName) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites/add`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model_id: modelId, series_name: seriesName})
+            });
+            if (!response.ok) return false;
+            userFavoritesList.push({id: modelId, series: seriesName});
+            return true;
+        } catch (e) {
+            console.error("添加收藏失败:", e);
+            return false;
+        }
+    }
+
+    async function apiRemoveFavorite(modelId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites/remove`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model_id: modelId})
+            });
+            if (!response.ok) return false;
+            userFavoritesList = userFavoritesList.filter(item => item.id !== modelId);
+            return true;
+        } catch (e) {
+            console.error("移除收藏失败:", e);
+            return false;
+        }
+    }
+
+    async function handleFavoriteClick() {
+        const favButton = document.getElementById('add-to-favorite-btn');
+        if (!favButton) return;
+        if (!isUserLoggedIn) {
+            alert("请先登录后再使用收藏功能。");
+            const redirectUrl = window.location.href;
+            window.location.href = `login.html?redirect=${encodeURIComponent(redirectUrl)}`;
+            return;
+        }
+        const isFavorited = userFavoritesList.some(item => item.id === currentModelId);
+
+        const favIconFavorited = '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+        const favIconRegular = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+
+        if (isFavorited) {
+            favButton.title = '加入收藏';
+            favButton.classList.remove('favorited', 'text-red-500', 'bg-red-100', 'hover:bg-red-200');
+            favButton.classList.add('text-gray-400', 'hover:text-red-500', 'hover:bg-red-100');
+            favButton.innerHTML = favIconRegular;
+            const success = await apiRemoveFavorite(currentModelId);
+            if (!success) {
+                favButton.title = '移除收藏';
+                favButton.classList.add('favorited', 'text-red-500', 'bg-red-100', 'hover:bg-red-200');
+                favButton.classList.remove('text-gray-400', 'hover:text-red-500', 'hover:bg-red-100');
+                favButton.innerHTML = favIconFavorited;
+            }
+        } else {
+            favButton.title = '移除收藏';
+            favButton.classList.add('favorited', 'text-red-500', 'bg-red-100', 'hover:bg-red-200');
+            favButton.classList.remove('text-gray-400', 'hover:text-red-500', 'hover:bg-red-100');
+            favButton.innerHTML = favIconFavorited;
+
+            const success = await apiAddFavorite(currentModelId, currentSeriesName);
+            if (!success) {
+                favButton.title = '加入收藏';
+                favButton.classList.remove('favorited', 'text-red-500', 'bg-red-100', 'hover:bg-red-200');
+                favButton.classList.add('text-gray-400', 'hover:text-red-500', 'hover:bg-red-100');
+                favButton.innerHTML = favIconRegular;
+            }
+        }
+    }
+
+    function updateFavoriteButton() {
+        const favButton = document.getElementById('add-to-favorite-btn');
+        if (!favButton) return;
+
+        const favIconFavorited = '<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+        const favIconRegular = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+
+        const exists = isUserLoggedIn && currentModelId && userFavoritesList.some(item => item.id === currentModelId);
+
+        if (exists) {
+            favButton.title = '移除收藏';
+            favButton.classList.add('favorited', 'text-red-500', 'bg-red-100', 'hover:bg-red-200');
+            favButton.classList.remove('text-gray-400', 'hover:text-red-500', 'hover:bg-red-100');
+            favButton.innerHTML = favIconFavorited;
+        } else {
+            favButton.title = isUserLoggedIn ? '加入收藏' : '登录以收藏';
+            favButton.classList.remove('favorited', 'text-red-500', 'bg-red-100', 'hover:bg-red-200');
+            favButton.classList.add('text-gray-400', 'hover:text-red-500', 'hover:bg-red-100');
+            favButton.innerHTML = favIconRegular;
+        }
+    }
+
+    function updateExternalSearchLinks() {
+        const linkYiche = document.getElementById('link-yiche');
+        if (linkYiche) linkYiche.href = 'https://www.yiche.com/';
+        const linkDcd = document.getElementById('link-dcd');
+        if (linkDcd) linkDcd.href = 'https://www.dongchedi.com/';
+        const linkAutohome = document.getElementById('link-autohome');
+        if (linkAutohome) linkAutohome.href = 'https://www.autohome.com.cn/';
+    }
+
+    function groupAndRenderSpecs(configData) {
+        const groupedSpecs = {};
+        const ignoreKeys = new Set([
+            'is_koubei_row', 'price_numeric', '图片链接', '车系名称', '车型名称',
+            '动力类型', '车身类型', '品牌', '所有评价', '平均评分', '评价数量', '评价条数',
+            '基本信息_厂商指导价', 'brand_website_url',
+            '车身_座位数', '基本信息_级别'
+        ]);
+        for (const key in configData) {
+            if (ignoreKeys.has(key) || configData[key] === null || configData[key] === '') continue;
+            let groupName = '其他信息';
+            let specName = key;
+            if (key.includes('_')) {
+                const parts = key.split('_');
+                groupName = parts[0];
+                specName = parts.slice(1).join('_');
+            }
+            if (!groupedSpecs[groupName]) {
+                groupedSpecs[groupName] = [];
+            }
+            groupedSpecs[groupName].push({name: specName, value: configData[key]});
+        }
+        const preferredGroupOrder = [
+            '基本信息', '车身', '动力系统', '发动机', '电机', '电池/补能', '变速箱', '底盘转向', '车轮制动',
+            '主动安全', '辅助/操控配置', '外部配置', '内部配置', '座椅配置',
+            '多媒体配置', '智能互联', '灯光配置', '玻璃/后视镜', '空调/冰箱'
+        ];
+        for (const groupName in groupedSpecs) {
+            if (!preferredGroupOrder.includes(groupName)) {
+                preferredGroupOrder.push(groupName);
+            }
+        }
+        const specsGrid = document.getElementById('specs-grid');
+        specsGrid.innerHTML = '';
+        let visibleHTML = '';
+        let collapsibleHTML = '';
+        let visibleCategoryCount = 0;
+        const MAX_VISIBLE_CATEGORIES = 3;
+        for (const groupName of preferredGroupOrder) {
+            if (groupedSpecs[groupName] && groupedSpecs[groupName].length > 0) {
+                let groupHTML = `<div><h4 class="text-xl font-semibold text-blue-600 mb-3">${groupName}</h4>`;
+                groupedSpecs[groupName].forEach(spec => {
+                    groupHTML += `<p class="mb-1.5 flex justify-between">
+                                      <strong class="font-normal text-gray-800">${spec.name}：</strong>
+                                      <span class="text-gray-600 text-right">${spec.value}</span>
+                                    </p>`;
+                });
+                groupHTML += '</div>';
+                if (visibleCategoryCount < MAX_VISIBLE_CATEGORIES) {
+                    visibleHTML += groupHTML;
+                } else {
+                    collapsibleHTML += groupHTML;
+                }
+                visibleCategoryCount++;
+            }
+        }
+        if (visibleHTML === '' && collapsibleHTML === '') {
+            specsGrid.innerHTML = '<p class="col-span-full text-center text-gray-500">暂未收录该车型的详细参数配置。</p>';
+        } else {
+            specsGrid.innerHTML = visibleHTML;
+            if (collapsibleHTML !== '') {
+                const collapsedContainer = document.createElement('div');
+                collapsedContainer.id = 'collapsed-specs';
+                collapsedContainer.className = 'col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10';
+                collapsedContainer.style.display = 'none';
+                collapsedContainer.innerHTML = collapsibleHTML;
+                specsGrid.appendChild(collapsedContainer);
+                const buttonContainer = document.getElementById('expand-button-container');
+                if (buttonContainer) buttonContainer.style.display = 'block';
+            }
+        }
+    }
+
+    async function fetchModelConfiguration(modelId, seriesName) {
+        const specsGrid = document.getElementById('specs-grid');
+        if (!modelId || !seriesName) {
+            specsGrid.innerHTML = '<p class="col-span-full text-red-500">错误：未指定车型ID或车系名称。</p>';
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/get-model-config?model_id=${encodeURIComponent(modelId)}&series_name=${encodeURIComponent(seriesName)}`);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status} 错误`);
+            }
+            const configData = await response.json();
+            document.getElementById('model-price').textContent = configData.基本信息_厂商指导价 || '--.--万';
+            document.getElementById('model-image').src = configData.图片链接 || 'https://via.placeholder.com/800x600.png?text=No+Image';
+
+            const powerTypeSpan = document.getElementById('model-power-type');
+            const powerType = configData.动力类型 || '--';
+            powerTypeSpan.textContent = powerType;
+            powerTypeSpan.classList.remove('bg-gray-100', 'text-gray-800', 'bg-green-100', 'text-green-800', 'bg-blue-100', 'text-blue-800', 'bg-red-100', 'text-red-800');
+            let colorClass = 'bg-gray-100 text-gray-800';
+            if (powerType === '纯电' || powerType === '氢能源') {
+                colorClass = 'bg-green-100 text-green-800';
+            } else if (['插电混动', '增程式'].includes(powerType)) {
+                colorClass = 'bg-blue-100 text-blue-800';
+            } else if (['燃油', '油电混合', '轻混系统'].includes(powerType)) {
+                colorClass = 'bg-red-100 text-red-800';
+            }
+            powerTypeSpan.classList.add(...colorClass.split(' '));
+            const bodyTypeSpan = document.getElementById('model-body-type');
+            bodyTypeSpan.textContent = configData.车身类型 || '--';
+            const seatCountSpan = document.getElementById('model-seat-count');
+            seatCountSpan.textContent = configData.车身_座位数 || '--';
+            const segmentSpan = document.getElementById('model-segment');
+            segmentSpan.textContent = configData.基本信息_级别 || '--';
+            let description = '';
+            if (configData.基本信息_厂商) description += `${configData.基本信息_厂商} | `;
+            if (configData.基本信息_级别) description += `${configData.基本信息_级别} | `;
+            if (configData.动力类型) description += `${configData.动力类型}`;
+            document.getElementById('model-description').textContent = description || '暂无简短描述';
+            groupAndRenderSpecs(configData);
+        } catch (error) {
+            console.error('获取车型配置失败:', error);
+            specsGrid.innerHTML = `<p class="col-span-full text-red-500">数据加载失败: ${error.message}</p>`;
+        }
+    }
+
+    function getComparisonList() {
+        try {
+            const list = sessionStorage.getItem('comparisonList');
+            return list ? JSON.parse(list) : [];
+        } catch (e) {
+            console.error("无法解析对比列表:", e);
+            return [];
+        }
+    }
+
+    function addToComparison(modelId, seriesName) {
+        if (!modelId || !seriesName) return;
+        let list = getComparisonList();
+        const exists = list.some(item => item.id === modelId);
+        if (!exists) {
+            list.push({id: modelId, series: seriesName});
+            sessionStorage.setItem('comparisonList', JSON.stringify(list));
+        }
+        updateCompareButtons(modelId);
+    }
+
+    function removeFromComparison(modelId) {
+        if (!modelId) return;
+        let list = getComparisonList();
+        list = list.filter(item => item.id !== modelId);
+        sessionStorage.setItem('comparisonList', JSON.stringify(list));
+        updateCompareButtons(modelId);
+    }
+
+    function updateCompareButtons(currentModelId) {
+        const list = getComparisonList();
+        const countSpan = document.getElementById('compare-count');
+        const viewLink = document.getElementById('view-compare-link');
+        const addButton = document.getElementById('add-to-compare-btn');
+        if (!addButton) return;
+        if (list.length > 0) {
+            countSpan.textContent = list.length;
+            viewLink.classList.remove('hidden');
+        } else {
+            viewLink.classList.add('hidden');
+        }
+        const exists = currentModelId && list.some(item => item.id === currentModelId);
+        if (exists) {
+            addButton.textContent = '✓ 移除对比';
+            addButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            addButton.classList.add('bg-red-500', 'hover:bg-red-600');
+            addButton.disabled = false;
+        } else if (currentModelId) {
+            addButton.textContent = '+ 加入对比';
+            addButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            addButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            addButton.disabled = false;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        setupNavbar();
+        await loadUserFavorites();
+        const urlParams = new URLSearchParams(window.location.search);
+        currentModelId = urlParams.get('model_id');
+        currentSeriesName = urlParams.get('series_name');
+
+        const decodedModelName = currentModelId ? decodeURIComponent(currentModelId) : '车型详情';
+        const decodedSeriesName = currentSeriesName ? decodeURIComponent(currentSeriesName) : '未知车系';
+
+        document.title = `${decodedModelName} - 车型配置`;
+        document.getElementById('model-name').textContent = decodedModelName;
+
+        const backLinkEl = document.querySelector('a[href*="javascript:history.back()"]');
+        if (backLinkEl && currentSeriesName) {
+            backLinkEl.href = `details.html?series_name=${encodeURIComponent(currentSeriesName)}`;
+            backLinkEl.innerHTML = `&larr; 返回 ${decodedSeriesName}`;
+        } else if (backLinkEl) {
+            backLinkEl.href = '车系.html';
+            backLinkEl.innerHTML = `&larr; 返回首页`;
+        }
+
+        updateExternalSearchLinks();
+        fetchModelConfiguration(currentModelId, currentSeriesName);
+
+        updateCompareButtons(currentModelId);
+        const addButton = document.getElementById('add-to-compare-btn');
+        addButton.addEventListener('click', () => {
+            let list = getComparisonList();
+            const exists = list.some(item => item.id === currentModelId);
+            if (exists) {
+                removeFromComparison(currentModelId);
+            } else {
+                addToComparison(currentModelId, currentSeriesName);
+            }
+        });
+        updateFavoriteButton();
+        const favButton = document.getElementById('add-to-favorite-btn');
+        favButton.addEventListener('click', handleFavoriteClick);
+        const aiButton = document.getElementById('ai-recommend-button');
+        const aiInput = document.getElementById('ai-prompt-textarea');
+        aiButton.onclick = () => {
+            const query = aiInput.value.trim();
+            const basePrompt = query ? query : `介绍一下这款车`;
+            const targetUrl = `second.html?initial_prompt=${encodeURIComponent(basePrompt)}&known_series=${encodeURIComponent(currentSeriesName || '')}&known_model=${encodeURIComponent(currentModelId || '')}`;
+            window.location.href = targetUrl;
+        };
+        const expandButton = document.getElementById('expand-button');
+        if (expandButton) {
+            expandButton.addEventListener('click', () => {
+                const collapsedSpecs = document.getElementById('collapsed-specs');
+                if (!collapsedSpecs) return;
+                const isHidden = collapsedSpecs.style.display === 'none';
+                if (isHidden) {
+                    collapsedSpecs.style.display = 'grid';
+                    expandButton.innerHTML = '收起详细配置 &uarr;';
+                } else {
+                    collapsedSpecs.style.display = 'none';
+                    expandButton.innerHTML = '展开全部配置 &darr;';
+                    document.getElementById('specs-grid').scrollIntoView({behavior: 'smooth', block: 'start'});
+                }
+            });
+        }
+        const toggleExternalLinksButton = document.getElementById('toggle-external-links');
+        const externalLinksContainer = document.getElementById('external-links-container');
+        const externalLinksArrow = document.getElementById('external-links-arrow');
+        if (toggleExternalLinksButton && externalLinksContainer && externalLinksArrow) {
+            toggleExternalLinksButton.addEventListener('click', () => {
+                const isHidden = externalLinksContainer.classList.contains('max-h-0');
+                if (isHidden) {
+                    externalLinksContainer.classList.remove('max-h-0');
+                    externalLinksContainer.classList.add('max-h-96');
+                    externalLinksArrow.classList.add('rotate-90');
+                    toggleExternalLinksButton.childNodes[0].nodeValue = '收起更多信息 ';
+                } else {
+                    externalLinksContainer.classList.add('max-h-0');
+                    externalLinksContainer.classList.remove('max-h-96');
+                    externalLinksArrow.classList.remove('rotate-90');
+                    toggleExternalLinksButton.childNodes[0].nodeValue = '获取更多信息？请点击 ';
+                }
+            });
+        }
+    });
+    window.addEventListener('pageshow', async function (event) {
+        if (event.persisted) {
+            console.log("页面已从 bfcache 恢复，正在强制刷新状态...");
+            if (typeof currentModelId !== 'undefined') {
+                updateCompareButtons(currentModelId);
+            }
+            await loadUserFavorites();
+            updateFavoriteButton();
+        }
+    });
+</script>
+
+</body>
+</html>

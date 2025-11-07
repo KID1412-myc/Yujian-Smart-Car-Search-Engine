@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>账户设置 - 驭·见</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <a href="车系.html" class="hover:text-blue-500">首页</a>
+        <span class="text-gray-400">加载中...</span>
+    </nav>
+</header>
+
+<main class="max-w-2xl mx-auto mt-10 space-y-8 mb-20">
+
+    <div class="p-8 bg-white rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">个人资料</h2>
+
+        <div class="flex items-center space-x-6">
+            <div class="flex-shrink-0">
+                    <span class="inline-block h-20 w-20 rounded-full overflow-hidden bg-gray-200">
+                        <svg class="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                    </span>
+            </div>
+
+            <form id="profile-form" class="space-y-4 flex-grow">
+                <div>
+                    <label for="nickname" class="block text-sm font-medium text-gray-700">昵称 (显示名称)</label>
+                    <input id="nickname" name="nickname" type="text" required
+                           class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="您在网站上显示的名称">
+                </div>
+
+                <div id="message-container" class="text-center h-4">
+                </div>
+
+                <div>
+                    <button type="submit" id="save-button"
+                            class="w-full px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+                        保存更改
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="p-8 bg-white rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">账户详情</h2>
+        <div class="space-y-4">
+            <div>
+                <label for="user-id" class="block text-sm font-medium text-gray-700">用户 ID</label>
+                <input id="user-id" type="text" readonly
+                       class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md bg-gray-100 text-gray-500 focus:outline-none cursor-not-allowed">
+            </div>
+
+            <div>
+                <label for="username" class="block text-sm font-medium text-gray-700">用户名 (登录凭据)</label>
+                <input id="username" type="text" readonly
+                       class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md bg-gray-100 text-gray-500 focus:outline-none cursor-not-allowed">
+            </div>
+
+            <p class="mt-2 text-xs text-gray-500">用户ID和用户名是您的唯一凭据，无法修改。</p>
+        </div>
+    </div>
+    <div class="p-8 bg-white rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">修改密码</h2>
+        <form id="password-form" class="space-y-4">
+            <div>
+                <label for="current-password" class="block text-sm font-medium text-gray-700">当前密码</label>
+                <input id="current-password" name="current-password" type="password" required
+                       class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label for="new-password" class="block text-sm font-medium text-gray-700">新密码</label>
+                <input id="new-password" name="new-password" type="password" required minlength="6"
+                       class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="至少6位字符">
+            </div>
+            <div>
+                <label for="new-password-confirm" class="block text-sm font-medium text-gray-700">确认新密码</label>
+                <input id="new-password-confirm" name="new-password-confirm" type="password" required minlength="6"
+                       class="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div id="password-message-container" class="text-center h-4"></div>
+
+            <div>
+                <button type="submit" id="save-password-button"
+                        class="w-full px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+                    保存新密码
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="p-8 bg-white rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">账户操作</h2>
+        <button id="logout-button-main"
+                class="w-full px-4 py-2 font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+            退出登录
+        </button>
+    </div>
+
+</main>
+<script src="config.js"></script>
+<script>
+    const navbarContainer = document.getElementById('navbar-container');
+    const usernameInput = document.getElementById('username');
+    const nicknameInput = document.getElementById('nickname');
+    const profileForm = document.getElementById('profile-form');
+    const saveButton = document.getElementById('save-button');
+    const messageContainer = document.getElementById('message-container');
+    const mainLogoutButton = document.getElementById('logout-button-main');
+    const userIdInput = document.getElementById('user-id');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.status === 401) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('无法获取用户信息，请稍后重试。');
+            }
+
+            const user = await response.json();
+            populatePage(user);
+
+        } catch (error) {
+            console.error('页面加载失败:', error);
+            document.body.innerHTML = `<p class="text-red-500 text-center mt-10">页面加载失败: ${error.message} <a href="login.html" class="text-blue-500">点此返回登录</a></p>`;
+        }
+    });
+
+
+    function populatePage(user) {
+        if (userIdInput) {
+            userIdInput.value = user.id || 'N/A';
+        }
+        usernameInput.value = user.username;
+        nicknameInput.value = user.nickname || user.username;
+        setupNavbar(user.nickname || user.username, user.role);
+        profileForm.addEventListener('submit', handleProfileUpdate);
+        mainLogoutButton.addEventListener('click', handleLogout);
+        document.getElementById('logout-button-nav').addEventListener('click', handleLogout);
+        localStorage.setItem('userNickname', user.nickname || user.username);
+        localStorage.setItem('userRole', user.role || 'user');
+    }
+
+
+    function setupNavbar(nickname, role) {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+
+        const currentRole = role || localStorage.getItem('userRole');
+
+        let adminLinkHTML = '';
+        if (currentRole === 'admin' || currentRole === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-medium text-purple-600 hover:underline">管理后台</a>';
+        }
+
+        navbarContainer.innerHTML = `
+            <a href="车系.html" class="hover:text-blue-500">首页</a>
+            <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+            <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+            <a href="about.html" class="hover:text-blue-500">关于</a>
+            ${adminLinkHTML}
+            <span class="font-semibold text-blue-600">欢迎, ${nickname}</span>
+            <a href="profile.html" class="font-bold text-blue-600 hover:underline">账户设置</a>
+            <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+        `;
+    }
+
+    async function handleProfileUpdate(e) {
+        e.preventDefault();
+        const newNickname = nicknameInput.value.trim();
+
+        if (!newNickname) {
+            showMessage('昵称不能为空', 'error');
+            return;
+        }
+
+        showMessage('保存中...', 'loading');
+        saveButton.disabled = true;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/profile/update`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({nickname: newNickname})
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error("登录已过期，请重新登录");
+                }
+                throw new Error(data.error || '更新失败');
+            }
+
+            showMessage('昵称已成功更新！', 'success');
+            localStorage.setItem('userNickname', data.nickname);
+            setupNavbar(data.nickname, localStorage.getItem('userRole')); // 仅更新导航栏
+
+        } catch (error) {
+            showMessage(error.message, 'error');
+            if (error.message.includes("登录已过期")) {
+                setTimeout(() => window.location.href = 'login.html', 2000);
+            }
+        } finally {
+            saveButton.disabled = false;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.href = 'login.html';
+    }
+
+    function showMessage(message, type = 'error') {
+        let colorClass = 'text-red-500';
+        if (type === 'success') {
+            colorClass = 'text-green-500';
+        } else if (type === 'loading') {
+            colorClass = 'text-gray-500';
+        }
+        messageContainer.innerHTML = `<p class="${colorClass} text-sm">${message}</p>`;
+
+        if (type !== 'loading') {
+            setTimeout(() => {
+                messageContainer.innerHTML = '';
+            }, 2000);
+        }
+    }
+
+    const passwordForm = document.getElementById('password-form');
+    const savePasswordButton = document.getElementById('save-password-button');
+    const passwordMessageContainer = document.getElementById('password-message-container');
+
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const newPasswordConfirm = document.getElementById('new-password-confirm').value;
+
+            if (newPassword.length < 6) {
+                showPasswordMessage('新密码长度不能少于6位', 'error');
+                return;
+            }
+            if (newPassword !== newPasswordConfirm) {
+                showPasswordMessage('两次输入的新密码不一致', 'error');
+                return;
+            }
+
+            showPasswordMessage('保存中...', 'loading');
+            savePasswordButton.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/profile/change_password`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || '更新失败');
+                }
+
+                showPasswordMessage('密码更新成功！', 'success');
+                passwordForm.reset();
+
+            } catch (error) {
+                showPasswordMessage(error.message, 'error');
+            } finally {
+                savePasswordButton.disabled = false;
+            }
+        });
+    }
+
+    function showPasswordMessage(message, type = 'error') {
+        let colorClass = 'text-red-500';
+        if (type === 'success') {
+            colorClass = 'text-green-500';
+        } else if (type === 'loading') {
+            colorClass = 'text-gray-500';
+        }
+        passwordMessageContainer.innerHTML = `<p class="${colorClass} text-sm">${message}</p>`;
+
+        if (type !== 'loading') {
+            setTimeout(() => {
+                passwordMessageContainer.innerHTML = '';
+            }, 3000);
+        }
+    }
+
+</script>
+
+</body>
+</html>

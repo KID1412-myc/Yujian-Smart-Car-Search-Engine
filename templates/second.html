@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>智能车辆搜索引擎 - AI对话</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <a href="车系.html" class="hover:text-blue-500">首页</a>
+        <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+        <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+        <a href="javascript:history.back()" class="hover:text-blue-500">&larr; 返回</a>
+    </nav>
+</header>
+<main class="max-w-7xl mx-auto mt-6 grid grid-cols-12 gap-6">
+
+    <section class="col-span-12 lg:col-span-8 bg-white shadow rounded-lg flex flex-col h-[80vh]">
+        <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-box">
+        </div>
+
+        <div class="p-4 border-t flex">
+            <input type="text" id="user-input" placeholder="请输入您的需求..."
+                   class="flex-grow p-3 border rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <button id="send-button"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-r-lg font-bold transition-colors">
+                发送
+            </button>
+        </div>
+    </section>
+
+    <aside id="recommendation-links"
+           class="col-span-12 lg:col-span-4 bg-gray-50 shadow rounded-lg p-4 h-[80vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">🔗 推荐车型链接</h2>
+        <div id="recommendation-content" class="space-y-3">
+            <p class="text-gray-500">AI推荐的车型相关链接将显示在这里...</p>
+        </div>
+    </aside>
+
+</main>
+<script src="config.js"></script>
+<script>
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-medium text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="font-bold text-blue-600 hover:underline">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="javascript:history.back()" id="nav-back-link" class="hover:text-blue-500">&larr; 返回</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+            `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="font-bold text-blue-600 hover:underline">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="javascript:history.back()" id="nav-back-link" class="hover:text-blue-500">&larr; 返回</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+            `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.reload();
+    }
+
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const recommendationLinksContainer = document.getElementById('recommendation-content');
+
+    let chatHistory = [];
+    let knownSeries = null;
+    let knownModel = null;
+
+    function createThinkingBubble() {
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'p-3 rounded-lg max-w-lg bg-blue-100 text-gray-800 animate-pulse-slow';
+        bubbleDiv.innerHTML = `
+            <div class="space-y-3 py-1">
+                <div class="h-2 bg-blue-300 rounded w-3/4"></div>
+                <div class="h-2 bg-blue-300 rounded w-1/2"></div>
+                <div class="h-2 bg-blue-300 rounded w-5/6"></div>
+            </div>
+        `;
+        return bubbleDiv;
+    }
+
+    async function sendMessageToAI(history, kSeries, kModel) {
+        toggleInput(false);
+
+        const thinkingBubble = createThinkingBubble();
+        chatBox.appendChild(thinkingBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const requestBody = {
+            history: history
+        };
+        if (kSeries) {
+            requestBody.known_series = kSeries;
+        }
+        if (kModel) {
+            requestBody.known_model = kModel;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/ai_chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            thinkingBubble.remove();
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP错误! 状态: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.response_text) {
+                appendMessage(data.response_text, 'ai');
+                if (data.recommended_cars && data.recommended_cars.length > 0) {
+                    renderRecommendationLinks(data.recommended_cars);
+                } else {
+                    recommendationLinksContainer.innerHTML = '<p class="text-gray-500">暂无匹配的车型链接。</p>';
+                }
+            } else if (data.error) {
+                appendMessage(`发生错误: ${data.error}`, 'ai');
+                recommendationLinksContainer.innerHTML = '<p class="text-gray-500">处理出错，无法推荐车型。</p>';
+            }
+
+        } catch (error) {
+            if (thinkingBubble) thinkingBubble.remove();
+            console.error('AI聊天请求失败:', error);
+            appendMessage(`抱歉，与AI服务的连接中断了，请稍后再试。错误: ${error.message}`, 'ai');
+            recommendationLinksContainer.innerHTML = '<p class="text-gray-500">处理出错，无法推荐车型。</p>';
+        } finally {
+            toggleInput(true);
+        }
+    }
+
+    function renderRecommendationLinks(cars) {
+        recommendationLinksContainer.innerHTML = '';
+        const uniqueSeries = {};
+
+        cars.forEach(car => {
+            const seriesName = car.series_name;
+            if (!seriesName || seriesName === 'N/A') return;
+
+            if (!uniqueSeries[seriesName]) {
+                uniqueSeries[seriesName] = {
+                    name: seriesName,
+                    models: []
+                };
+            }
+            if (car.type === 'model' && car.name && car.name !== 'N/A') {
+                uniqueSeries[seriesName].models.push(car);
+            }
+        });
+
+        if (Object.keys(uniqueSeries).length === 0) {
+            recommendationLinksContainer.innerHTML = '<p class="text-gray-500">暂无匹配的车型链接。</p>';
+            return;
+        }
+
+        Object.values(uniqueSeries).forEach(series => {
+            const seriesCard = document.createElement('div');
+            seriesCard.className = 'bg-white p-3 rounded-lg shadow border border-gray-200';
+
+            let modelsHTML = '';
+
+            series.models.sort((a, b) => {
+                const priceA = parseFloat(a.price) || 0;
+                const priceB = parseFloat(b.price) || 0;
+                return priceA - priceB;
+            });
+
+
+            series.models.forEach(model => {
+                const modelName = encodeURIComponent(model.name);
+                const seriesNameEnc = encodeURIComponent(series.name);
+                modelsHTML += `
+                    <a href="configDetails.html?model_id=${modelName}&series_name=${seriesNameEnc}&model_name=${modelName}"
+                       target="_blank"
+                       class="block text-sm text-gray-700 hover:text-blue-600 hover:bg-gray-50 p-1 rounded">
+                        ${model.name} <span class="text-xs text-red-600 ml-1">${model.price || ''}</span>
+                    </a>
+                `;
+            });
+
+            seriesCard.innerHTML = `
+                <a href="details.html?series_name=${encodeURIComponent(series.name)}"
+                   target="_blank"
+                   class="font-semibold text-blue-700 hover:underline">
+                    ${series.name} (车系)
+                </a>
+                <div class="mt-2 space-y-1 border-t pt-2 max-h-48 overflow-y-auto">${modelsHTML}</div>
+            `;
+            recommendationLinksContainer.appendChild(seriesCard);
+        });
+    }
+
+
+    function appendMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        let cssClasses = 'p-3 rounded-lg max-w-lg';
+
+        if (sender === 'user') {
+            cssClasses += ' bg-gray-200 text-gray-800 ml-auto';
+            chatHistory.push({role: 'user', content: text});
+        } else { // AI
+            cssClasses += ' bg-blue-100 text-gray-800';
+            chatHistory.push({role: 'assistant', content: text});
+        }
+
+        messageDiv.className = cssClasses;
+        let htmlText = text.replace(/\n/g, '<br>');
+        htmlText = htmlText.replace(/\[([^\]]+)]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-600 hover:underline">$1</a>');
+        messageDiv.innerHTML = htmlText;
+
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return messageDiv;
+    }
+
+
+    function toggleInput(enabled) {
+        userInput.disabled = !enabled;
+        sendButton.disabled = !enabled;
+        if (enabled) {
+            sendButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            sendButton.classList.add('hover:bg-blue-700');
+            userInput.focus();
+        } else {
+            sendButton.classList.add('opacity-50', 'cursor-not-allowed');
+            sendButton.classList.remove('hover:bg-blue-700');
+        }
+    }
+
+
+    function handleSend() {
+        const message = userInput.value.trim();
+        if (message && !sendButton.disabled) {
+            appendMessage(message, 'user');
+            userInput.value = '';
+            sendMessageToAI(chatHistory, knownSeries, knownModel);
+        }
+    }
+
+    sendButton.addEventListener('click', handleSend);
+    userInput.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter' && !sendButton.disabled) {
+            handleSend();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupNavbar();
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialPrompt = urlParams.get('initial_prompt');
+        knownSeries = urlParams.get('known_series');
+        knownModel = urlParams.get('known_model');
+
+        let greetingMessage = "您好！请告诉我您的购车需求，例如：“预算25万左右，想要一辆适合上下班代步的电动SUV”，我将为您推荐最合适的车型。";
+        if (knownSeries) {
+            greetingMessage = `您正在查看 **${knownSeries}** 车系。有什么关于这款车的问题吗？或者告诉我您的其他需求，我可以帮您在本车系内筛选，或者推荐其他车系的车型。`;
+            if (knownModel) {
+                greetingMessage = `您正在查看 **${knownSeries}** 车系的 **${knownModel}** 车型。有什么关于这款车型的具体问题吗？或者告诉我您的其他需求。`;
+            }
+        }
+
+        if (initialPrompt) {
+            appendMessage(initialPrompt, 'user');
+            sendMessageToAI(chatHistory, knownSeries, knownModel);
+        } else {
+            appendMessage(greetingMessage, 'ai');
+        }
+
+        toggleInput(true);
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑车辆数据 - 驭·见</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <span class="text-gray-400">加载中...</span>
+    </nav>
+</header>
+
+<main class="max-w-7xl mx-auto p-8 mt-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-4xl font-bold text-gray-800">编辑车辆数据</h1>
+        <div>
+            <a href="admin.html#panel-content"
+               class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                &larr; 返回内容管理
+            </a>
+            <button id="save-button"
+                    class="ml-4 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-bold">
+                保存更改
+            </button>
+        </div>
+    </div>
+
+    <div id="message-container" class="mb-4"></div>
+
+    <div class="bg-white shadow-lg rounded-lg p-8">
+        <div class="mb-4">
+            <p class="text-sm text-gray-600">正在编辑 ES 文档 ID:</p>
+            <p id="doc-id-display" class="text-lg font-mono text-gray-800 break-all">加载中...</p>
+        </div>
+        <hr class="my-6">
+
+        <div id="form-container" class="space-y-8">
+            <p class="text-center text-gray-500 py-10">正在加载车辆数据...</p>
+        </div>
+    </div>
+</main>
+
+<script src="config.js"></script>
+<script>
+
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-bold text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                    <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                    <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                    <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                    <a href="about.html" class="hover:text-blue-500">关于</a>
+                    ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                    <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                    <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+                `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                    <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                    <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                    <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                    <a href="about.html" class="hover:text-blue-500">关于</a>
+                    <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                    <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+                `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.href = '车系.html';
+    }
+
+    let currentDocId = null;
+    const formContainer = document.getElementById('form-container');
+    const docIdDisplay = document.getElementById('doc-id-display');
+    const saveButton = document.getElementById('save-button');
+    const messageContainer = document.getElementById('message-container');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupNavbar();
+
+        const role = localStorage.getItem('userRole');
+        if (role !== 'admin' && role !== 'core_admin') {
+            document.querySelector('main').innerHTML = `
+                <div class="bg-white shadow-lg rounded-lg p-8 text-center">
+                    <h2 class="text-2xl font-bold text-red-600 mb-4">权限不足</h2>
+                    <p class="text-gray-700">您没有权限编辑此内容。</p>
+                    <a href="admin.html" class="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition">返回管理后台</a>
+                </div>`;
+            return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        currentDocId = urlParams.get('id');
+
+        if (!currentDocId) {
+            formContainer.innerHTML = `<p class="text-center text-red-500 py-10">错误：URL 中未提供文档 ID。</p>`;
+            docIdDisplay.textContent = '错误';
+            saveButton.disabled = true;
+            return;
+        }
+
+        docIdDisplay.textContent = currentDocId;
+        loadVehicleData(currentDocId);
+        saveButton.addEventListener('click', handleSave);
+    });
+
+    async function loadVehicleData(docId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/vehicles/get/${docId}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || `加载失败 (HTTP ${response.status})`);
+            }
+
+            const data = await response.json();
+            renderForm(data);
+
+        } catch (error) {
+            console.error('加载数据失败:', error);
+            formContainer.innerHTML = `<p class="text-center text-red-500 py-10">加载数据失败: ${error.message}</p>`;
+            saveButton.disabled = true;
+        }
+    }
+
+
+    function renderForm(data) {
+        formContainer.innerHTML = '';
+
+        const groups = {};
+        const excludeKeys = ['is_koubei_row', 'price_numeric', 'id', 'url', '图片链接'];
+
+        Object.keys(data).sort().forEach(key => {
+            if (excludeKeys.includes(key)) return;
+            const parts = key.split('_');
+            const groupName = parts.length > 1 ? parts[0] : '其他信息';
+            const labelName = parts.length > 1 ? parts.slice(1).join('_') : key;
+
+            if (!groups[groupName]) {
+                groups[groupName] = [];
+            }
+
+            groups[groupName].push({
+                key: key,
+                labelName: labelName,
+                value: data[key]
+            });
+        });
+
+        for (const groupName in groups) {
+            const items = groups[groupName];
+
+            const fieldset = document.createElement('fieldset');
+            fieldset.className = 'border border-gray-300 p-4 rounded-lg';
+
+            const legend = document.createElement('legend');
+            legend.className = 'px-2 font-bold text-xl text-blue-700';
+            legend.textContent = groupName;
+
+            fieldset.appendChild(legend);
+
+            const gridDiv = document.createElement('div');
+
+            if (groupName === '口碑') {
+                gridDiv.className = 'space-y-4';
+            } else {
+                gridDiv.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4';
+            }
+
+            items.forEach(item => {
+                const itemDiv = document.createElement('div');
+
+                const label = document.createElement('label');
+                label.htmlFor = `field-${item.key}`;
+                label.className = 'block text-sm font-medium text-gray-700';
+                label.textContent = item.labelName;
+
+                itemDiv.appendChild(label);
+
+                let inputElement;
+                const valueStr = (item.value === null || typeof item.value === 'undefined') ? '' : String(item.value);
+
+                if (valueStr.length > 100 || item.key === '所有评价') {
+                    inputElement = document.createElement('textarea');
+                    inputElement.rows = 4;
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = 'text';
+                }
+
+                inputElement.id = `field-${item.key}`;
+                inputElement.value = valueStr;
+                inputElement.dataset.key = item.key;
+                inputElement.className = 'form-field mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500';
+
+                itemDiv.appendChild(inputElement);
+                gridDiv.appendChild(itemDiv);
+            });
+
+            fieldset.appendChild(gridDiv);
+            formContainer.appendChild(fieldset);
+        }
+    }
+
+
+    async function handleSave() {
+        if (!currentDocId) {
+            showMessage('没有文档ID，无法保存', 'error');
+            return;
+        }
+
+        if (!confirm('您确定要保存这些更改吗？')) {
+            return;
+        }
+
+        const newData = {};
+        const fields = document.querySelectorAll('.form-field');
+
+        fields.forEach(input => {
+            const key = input.dataset.key;
+            const value = input.value;
+
+            if (key) {
+                newData[key] = value;
+            }
+        });
+
+        saveButton.disabled = true;
+        saveButton.textContent = '保存中...';
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/admin/vehicles/update/${currentDocId}`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(newData)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || '保存失败');
+            }
+
+            showMessage('保存成功！', 'success');
+
+        } catch (error) {
+            console.error('保存失败:', error);
+            showMessage(`保存失败: ${error.message}`, 'error');
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = '保存更改';
+        }
+    }
+
+    function showMessage(message, type = 'error') {
+        const colorClass = type === 'success' ? 'text-green-600 bg-green-100 p-3 rounded-md' : 'text-red-600 bg-red-100 p-3 rounded-md';
+        messageContainer.innerHTML = `<p class="${colorClass}">${message}</p>`;
+        setTimeout(() => {
+            messageContainer.innerHTML = '';
+        }, 4000);
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# 密钥文件 (!! 绝对禁止上传 !!)
+.env
+
+# Python 运行时缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境 (如果它在项目内的话)
+.venv/
+venv/
+
+# 数据、日志和临时文件
+车数据/
+*.csv
+crawler.status
+crawler.log
+temp_uploads/
+
+# IDE 配置文件
+.idea/
+.DS_Store

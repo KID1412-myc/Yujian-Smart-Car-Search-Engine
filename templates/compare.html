@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>车型对比 - 驭·见智能搜索引擎</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pinyin-pro@3.27.0/dist/index.js"></script>
+    <style>
+        th:first-child,
+        td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background-color: inherit;
+        }
+
+        thead th:first-child {
+            z-index: 20;
+        }
+
+        tbody tr:hover td {
+            background-color: #f9fafb;
+        }
+
+        tbody tr:hover td:first-child {
+            background-color: #f9fafb;
+        }
+
+        tbody tr:nth-child(even):hover td {
+            background-color: #f3f4f6;
+        }
+
+        tbody tr:nth-child(even):hover td:first-child {
+            background-color: #f3f4f6;
+        }
+
+        #add-model-panel .list-container {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+        }
+
+        #add-model-panel .list-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        #add-model-panel .list-item:last-child {
+            border-bottom: none;
+        }
+
+        #add-model-panel .list-item:hover {
+            background-color: #f9fafb;
+        }
+
+        #add-model-panel .list-item.active {
+            background-color: #EFF6FF;
+            color: #2563EB;
+            font-weight: 600;
+        }
+
+        #add-model-panel .list-item.added {
+            background-color: #F0FDF4;
+            color: #166534;
+            cursor: not-allowed;
+        }
+
+        .favorite-btn.favorited svg {
+            fill: currentColor;
+        }
+
+        .favorite-btn:not(.favorited) svg {
+            fill: none;
+        }
+
+        .ai-summary-content h1,
+        .ai-summary-content h2,
+        .ai-summary-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+
+        .ai-summary-content ul,
+        .ai-summary-content ol {
+            list-style-position: inside;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .ai-summary-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-summary-content p {
+            margin-bottom: 1rem;
+        }
+
+        .ai-summary-content strong,
+        .ai-summary-content b {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .ai-summary-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+
+        .ai-summary-content th,
+        .ai-summary-content td {
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem;
+        }
+
+        .ai-summary-content th {
+            background-color: #f9fafb;
+        }
+
+        @keyframes pulse {
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .skeleton-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <a href="车系.html" class="hover:text-blue-500">首页</a>
+        <span class="text-gray-400">加载中...</span>
+    </nav>
+</header>
+<section class="max-w-7xl mx-auto mt-8 px-4">
+    <div class="flex justify-between items-center mb-2">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">车型参数对比</h2>
+            <p class="text-gray-600">一目了然，帮你快速选出最合适的那一款</p>
+        </div>
+        <button id="clear-compare-list"
+                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition hidden">
+            清空对比列表
+        </button>
+    </div>
+
+    <div id="ai-summary-section" class="mt-6 bg-white rounded-lg shadow-lg" style="display: none;">
+        <div id="ai-summary-trigger" class="p-6 flex justify-between items-center cursor-pointer">
+            <h3 class="text-2xl font-bold text-gray-800">🤖 AI 智能对比总结</h3>
+            <button id="ai-summary-toggle-button"
+                    class="text-blue-600 hover:text-blue-800 font-semibold py-1 px-3 rounded-lg">
+                点此生成 &darr;
+            </button>
+        </div>
+        <div id="ai-compare-container" class="px-6 pb-6 border-t border-gray-200" style="display: none;">
+            <div id="ai-compare-content" class="mt-6 text-gray-700 leading-relaxed ai-summary-content">
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<section id="add-model-section" class="max-w-7xl mx-auto mt-4 px-4">
+    <button id="toggle-add-panel-btn"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium transition">
+        + 添加新车型
+    </button>
+    <div id="add-model-panel" class="hidden mt-4 p-4 bg-white rounded-lg shadow-md">
+        <div class="mb-4">
+            <label for="model-search-input" class="block text-sm font-medium text-gray-700">快速搜索车型</label>
+            <div class="flex mt-1">
+                <input type="text" id="model-search-input" placeholder="输入车型、车系或品牌..."
+                       class="flex-grow p-2 border border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500">
+                <button id="model-search-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-r-md">搜索
+                </button>
+            </div>
+            <div id="model-search-results" class="list-container mt-2 hidden"></div>
+        </div>
+        <p class="block text-sm font-medium text-gray-700 mb-2">或按品牌浏览</p>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <h4 class="font-semibold mb-1">1. 选择品牌</h4>
+                <div id="brand-list" class="list-container">
+                    <p class="p-2 text-gray-500">加载中...</p>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-1">2. 选择厂商</h4>
+                <div id="mfg-list" class="list-container">
+                    <p class="p-2 text-gray-500">请先选择品牌</p>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-1">3. 选择车系</h4>
+                <div id="series-list" class="list-container">
+                    <p class="p-2 text-gray-500">请先选择厂商</p>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-1">4. 选择车型</h4>
+                <div id="model-list" class="list-container">
+                    <p class="p-2 text-gray-500">请先选择车系</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<main id="compare-container" class="max-w-7xl mx-auto mt-6 bg-white shadow-lg rounded-2xl overflow-x-auto">
+    <div id="compare-initial-state" class="p-10 text-center text-gray-500">
+        <p>正在加载对比数据...</p>
+    </div>
+    <table id="compare-table" class="min-w-full text-sm text-gray-700 border-collapse hidden">
+        <thead id="compare-thead" class="bg-blue-600 text-white align-top">
+        </thead>
+        <tbody id="compare-tbody">
+        </tbody>
+    </table>
+</main>
+
+<footer class="mt-10 text-center text-gray-500 pb-6">
+    © 2025 驭见 智能车辆搜索引擎 | 数据来源：易车
+</footer>
+<script src="config.js"></script>
+<script>
+    let brandManufacturerData = {};
+    let groupedBrandsByPinyin = {};
+    let lastAddPanelAction = {type: null, value: null};
+    let isUserLoggedIn = false;
+    let userFavoritesList = [];
+
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-medium text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="font-bold text-blue-600 hover:underline">车型对比</a>
+                <a href="javascript:history.back()" id="nav-back-link" class="hover:text-blue-500">&larr; 返回</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+            `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="font-bold text-blue-600 hover:underline">车型对比</a>
+                <a href="javascript:history.back()" id="nav-back-link" class="hover:text-blue-500">&larr; 返回</a>
+                <a href="about.html" class="hover:text-blue-500">关于</a>
+                <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+            `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+
+        window.location.reload();
+    }
+
+    async function loadUserFavorites() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'}
+            });
+
+            if (response.status === 200) {
+                userFavoritesList = await response.json();
+                isUserLoggedIn = true;
+                console.log("用户收藏列表加载成功:", userFavoritesList);
+            } else {
+                isUserLoggedIn = false;
+                userFavoritesList = [];
+                console.log("用户未登录或获取收藏失败。");
+            }
+        } catch (e) {
+            console.error("无法连接到收藏夹API:", e);
+            isUserLoggedIn = false;
+            userFavoritesList = [];
+        }
+    }
+
+    async function apiAddFavorite(modelId, seriesName) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites/add`, {
+                method: 'POST',
+                credentials: 'include', // 【【【关键】】】
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model_id: modelId, series_name: seriesName})
+            });
+            if (!response.ok) return false;
+            userFavoritesList.push({id: modelId, series: seriesName});
+            return true;
+        } catch (e) {
+            console.error("添加收藏失败:", e);
+            return false;
+        }
+    }
+
+    async function apiRemoveFavorite(modelId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/favorites/remove`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({model_id: modelId})
+            });
+            if (!response.ok) return false;
+            userFavoritesList = userFavoritesList.filter(item => item.id !== modelId);
+            return true;
+        } catch (e) {
+            console.error("移除收藏失败:", e);
+            return false;
+        }
+    }
+
+    async function handleFavoriteClick(buttonEl) {
+        if (!isUserLoggedIn) {
+            alert("请先登录后再使用收藏功能。");
+            window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+            return;
+        }
+
+        const modelId = decodeURIComponent(buttonEl.dataset.modelId);
+        const seriesName = decodeURIComponent(buttonEl.dataset.seriesName);
+
+        const isFavorited = userFavoritesList.some(item => item.id === modelId);
+
+        const favIconFavorited = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+        const favIconRegular = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+
+        if (isFavorited) {
+
+            buttonEl.title = '加入收藏';
+            buttonEl.classList.remove('favorited', 'text-red-300', 'bg-red-100');
+            buttonEl.classList.add('text-blue-300', 'hover:text-white');
+            buttonEl.innerHTML = favIconRegular;
+
+            const success = await apiRemoveFavorite(modelId);
+            if (!success) {
+                buttonEl.title = '移除收藏';
+                buttonEl.classList.add('favorited', 'text-red-300', 'bg-red-100');
+                buttonEl.classList.remove('text-blue-300', 'hover:text-white');
+                buttonEl.innerHTML = favIconFavorited;
+            }
+        } else {
+            buttonEl.title = '移除收藏';
+            buttonEl.classList.add('favorited', 'text-red-300', 'bg-red-100');
+            buttonEl.classList.remove('text-blue-300', 'hover:text-white');
+            buttonEl.innerHTML = favIconFavorited;
+
+            const success = await apiAddFavorite(modelId, seriesName);
+            if (!success) {
+                buttonEl.title = '加入收藏';
+                buttonEl.classList.remove('favorited', 'text-red-300', 'bg-red-100');
+                buttonEl.classList.add('text-blue-300', 'hover:text-white');
+                buttonEl.innerHTML = favIconRegular;
+            }
+        }
+    }
+
+    function getComparisonList() {
+        try {
+            const list = sessionStorage.getItem('comparisonList');
+            return list ? JSON.parse(list) : [];
+        } catch (e) {
+            console.error("无法解析对比列表:", e);
+            return [];
+        }
+    }
+
+    function addToComparison(modelId, modelName, seriesName) {
+        if (!modelId || !seriesName) {
+            console.error("添加到对比失败：modelId 或 seriesName 为空");
+            return false;
+        }
+        let list = getComparisonList();
+        const exists = list.some(item => item.id === modelId);
+        if (!exists) {
+            list.push({id: modelId, series: seriesName});
+            sessionStorage.setItem('comparisonList', JSON.stringify(list));
+            console.log(`已添加 ${modelName} (${modelId}, ${seriesName})`);
+            return true;
+        }
+        return false;
+    }
+
+    function removeFromComparison(modelId) {
+        let list = getComparisonList();
+        list = list.filter(item => item.id !== modelId);
+        sessionStorage.setItem('comparisonList', JSON.stringify(list));
+        console.log(`已移除 ${modelId}`);
+        loadPage();
+
+        document.getElementById('ai-summary-section').style.display = 'none';
+        document.getElementById('ai-compare-container').style.display = 'none';
+        document.getElementById('ai-compare-content').innerHTML = '';
+        document.getElementById('ai-summary-toggle-button').innerHTML = '点此生成 &darr;';
+
+
+        if (lastAddPanelAction.type === 'search' && lastAddPanelAction.value) {
+            console.log(`智能刷新搜索: ${lastAddPanelAction.value}`);
+            handleSearch(lastAddPanelAction.value);
+        } else if (lastAddPanelAction.type === 'browse' && lastAddPanelAction.value) {
+            console.log(`智能刷新浏览: ${lastAddPanelAction.value}`);
+            loadModels(lastAddPanelAction.value);
+        }
+    }
+
+    document.getElementById('clear-compare-list').addEventListener('click', () => {
+        sessionStorage.removeItem('comparisonList');
+        loadPage();
+
+        document.getElementById('ai-summary-section').style.display = 'none';
+        document.getElementById('ai-compare-container').style.display = 'none';
+        document.getElementById('ai-compare-content').innerHTML = '';
+        document.getElementById('ai-summary-toggle-button').innerHTML = '点此生成 &darr;';
+
+        resetPanel('brand');
+        const resultsContainer = document.getElementById('model-search-results');
+        resultsContainer.innerHTML = '';
+        resultsContainer.classList.add('hidden');
+        document.getElementById('model-search-input').value = '';
+        lastAddPanelAction = {type: null, value: null};
+    });
+
+    function renderEmptyState(message) {
+        const table = document.getElementById('compare-table');
+        const initialState = document.getElementById('compare-initial-state');
+        const clearButton = document.getElementById('clear-compare-list');
+
+        document.getElementById('ai-summary-section').style.display = 'none';
+        document.getElementById('ai-compare-container').style.display = 'none';
+
+        table.classList.add('hidden');
+        initialState.innerHTML = `<p class="p-10 text-center text-gray-500">${message}</p>`;
+        initialState.classList.remove('hidden');
+        clearButton.classList.add('hidden');
+    }
+
+    async function fetchAllModelData(modelItems) {
+        const fetchPromises = modelItems.map(item =>
+            fetch(`${API_BASE_URL}/get-model-config?model_id=${encodeURIComponent(item.id)}&series_name=${encodeURIComponent(item.series)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error(`车型 ${item.id} 加载失败`);
+                    return res.json();
+                })
+        );
+        const results = await Promise.allSettled(fetchPromises);
+        const successfulData = results
+            .filter(res => res.status === 'fulfilled')
+            .map(res => res.value);
+        const failedModels = results
+            .filter(res => res.status === 'rejected')
+            .length;
+        if (failedModels > 0) {
+            alert(`${failedModels} 个车型数据加载失败，可能已被移除。`);
+        }
+        return successfulData;
+    }
+
+    function renderComparisonTable(modelsData) {
+        const table = document.getElementById('compare-table');
+        const thead = document.getElementById('compare-thead');
+        const tbody = document.getElementById('compare-tbody');
+        const initialState = document.getElementById('compare-initial-state');
+        const clearButton = document.getElementById('clear-compare-list');
+
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        if (modelsData.length === 0) {
+            renderEmptyState("您尚未添加任何车型到对比列表。请先浏览车型并点击“加入对比”。");
+            return;
+        }
+
+        let headerHTML = '<tr><th class="p-4 text-left font-semibold text-lg" style="min-width: 150px;">对比项</th>';
+        modelsData.forEach(model => {
+            const modelId = model['车型名称'];
+            const seriesName = model['车系名称'];
+            const isFavorited = userFavoritesList.some(item => item.id === modelId);
+
+            let favBtnHTML;
+            if (!isUserLoggedIn) {
+                favBtnHTML = `
+                    <a href="login.html?redirect=${encodeURIComponent(window.location.href)}"
+                       title="登录以收藏"
+                       class="favorite-btn p-1.5 rounded-full text-blue-300 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
+                    </a>
+                 `;
+            } else {
+                const favBtnClasses = isFavorited
+                    ? 'favorite-btn p-1.5 rounded-full text-red-300 bg-red-100 favorited'
+                    : 'favorite-btn p-1.5 rounded-full text-blue-300 hover:text-white';
+                const favIconHTML = isFavorited
+                    ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>'
+                    : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.5l1.318-1.182a4.5 4.5 0 016.364 6.364L12 20.25l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>';
+                const favTitle = isFavorited ? '移除收藏' : '加入收藏';
+
+                favBtnHTML = `
+                    <button class="${favBtnClasses}"
+                            data-model-id="${encodeURIComponent(modelId)}"
+                            data-series-name="${encodeURIComponent(seriesName)}"
+                            title="${favTitle}">
+                        ${favIconHTML}
+                    </button>
+                `;
+            }
+
+
+            headerHTML += `
+                <th class="p-4 text-center" style="min-width: 250px;">
+                    <img src="${model['图片链接'] || 'https://via.placeholder.com/400x300.png?text=No+Image'}" alt="${model['车型名称']}"
+                         class="w-full max-w-xs aspect-video object-cover rounded-lg mb-2 mx-auto">
+                    <p class="font-semibold text-base">${model['车型名称'] || '未知车型'}</p>
+                    <p class="font-normal text-sm mt-1">${model['基本信息_厂商指导价'] || '价格未知'}</p>
+                    <div class="flex justify-center items-center space-x-2 mt-2">
+                        ${favBtnHTML} <button class="remove-compare-btn text-red-300 hover:text-white text-xs px-2 py-1 bg-red-800/20 hover:bg-red-700/50 rounded-md"
+                                data-model-id="${modelId}">
+                            × 移除对比
+                        </button>
+                    </div>
+                </th>
+            `;
+        });
+        headerHTML += '</tr>';
+        thead.innerHTML = headerHTML;
+
+        const ignoreKeys = new Set([
+            'is_koubei_row', 'price_numeric', '图片链接', '车系名称', '车型名称',
+            '品牌', '所有评价', '平均评分', '评价数量',
+            '评价条数',
+            '基本信息_厂商指导价', 'brand_website_url'
+        ]);
+        const preferredGroupOrder = [
+            '基本信息', '车身', '动力系统', '发动机', '电机', '电池/补能', '变速箱', '底盘转向', '车轮制动',
+            '主动安全', '辅助/操控配置', '外部配置', '内部配置', '座椅配置',
+            '多媒体配置', '智能互联', '灯光配置', '玻璃/后视镜', '空调/冰箱'
+        ];
+        const allSpecGroups = {};
+        modelsData.forEach(model => {
+            for (const key in model) {
+                if (ignoreKeys.has(key) || model[key] === null || model[key] === '') continue;
+                let groupName = '其他信息';
+                let specName = key;
+                if (key.includes('_')) {
+                    const parts = key.split('_');
+                    groupName = parts[0];
+                    specName = parts.slice(1).join('_');
+                }
+                if (!allSpecGroups[groupName]) {
+                    allSpecGroups[groupName] = new Set();
+                }
+                allSpecGroups[groupName].add(specName);
+            }
+        });
+
+        let bodyHTML = '';
+        for (const groupName in allSpecGroups) {
+            if (!preferredGroupOrder.includes(groupName)) {
+                preferredGroupOrder.push(groupName);
+            }
+        }
+        preferredGroupOrder.forEach(groupName => {
+            if (allSpecGroups[groupName]) {
+                bodyHTML += `<tr class="bg-blue-50"><td class="p-3 font-bold text-blue-700" colspan="${modelsData.length + 1}">${groupName}</td></tr>`;
+                allSpecGroups[groupName].forEach(specName => {
+                    const fullKey = (groupName === '其他信息') ? specName : `${groupName}_${specName}`;
+                    let allEmpty = true;
+                    for (const model of modelsData) {
+                        if (model[fullKey]) {
+                            allEmpty = false;
+                            break;
+                        }
+                    }
+                    if (allEmpty) return;
+                    bodyHTML += `<tr class="border-b border-gray-200 even:bg-gray-50">`;
+                    bodyHTML += `<td class="p-3 font-semibold text-gray-800 bg-white">${specName}</td>`;
+                    modelsData.forEach(model => {
+                        const value = model[fullKey] || '—';
+                        bodyHTML += `<td class="p-3 text-center">${value}</td>`;
+                    });
+                    bodyHTML += `</tr>`;
+                });
+            }
+        });
+        tbody.innerHTML = bodyHTML;
+
+        initialState.classList.add('hidden');
+        table.classList.remove('hidden');
+        clearButton.classList.remove('hidden');
+        document.querySelectorAll('.remove-compare-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const modelId = e.target.dataset.modelId;
+                removeFromComparison(modelId);
+            });
+        });
+        thead.addEventListener('click', (e) => {
+            const favButton = e.target.closest('.favorite-btn');
+            if (favButton && favButton.tagName === 'BUTTON') {
+                e.preventDefault();
+                e.stopPropagation();
+                handleFavoriteClick(favButton);
+            }
+        });
+
+        const aiSummarySection = document.getElementById('ai-summary-section');
+        const aiSummaryTrigger = document.getElementById('ai-summary-trigger');
+        const aiSummaryContainer = document.getElementById('ai-compare-container');
+        const aiSummaryToggleButton = document.getElementById('ai-summary-toggle-button');
+        const aiCompareContent = document.getElementById('ai-compare-content');
+
+        let aiCompareLoaded = false;
+
+        if (modelsData.length >= 2) {
+            aiSummarySection.style.display = 'block';
+
+            aiSummaryTrigger.onclick = async () => {
+                const isHidden = aiSummaryContainer.style.display === 'none';
+
+                if (isHidden) {
+                    aiSummaryContainer.style.display = 'block';
+                    aiSummaryToggleButton.innerHTML = '收起总结 &uarr;';
+
+                    if (!aiCompareLoaded) {
+                        aiCompareLoaded = true;
+
+                        aiCompareContent.innerHTML = `
+                            <div class="skeleton-pulse p-4 text-center text-gray-600">
+                                <p class="font-semibold text-lg mb-2">🤖 AI 对比总结生成中...</p>
+                                <div class="h-3 bg-gray-200 rounded w-3/4 mx-auto mb-2"></div>
+                                <div class="h-3 bg-gray-200 rounded w-1/2 mx-auto"></div>
+                            </div>`;
+
+                        const keyFields = [
+                            '车型名称', '基本信息_厂商指导价', '动力类型', '发动机_排量[L]',
+                            '发动机_最大功率[kW]', '电机_总功率[kW]', '电池/补能_CLTC纯电续航里程[km]',
+                            '车身_长*宽*高[mm]', '车身_轴距[mm]', '车身_座位数',
+                            '辅助驾驶硬件_驾驶辅助级别', '座椅配置_第一排座椅功能',
+                            '车机/互联_中控屏尺寸[英寸]', '底盘转向_驱动形式'
+                        ];
+
+                        const slimModelsData = modelsData.map(model => {
+                            const slimModel = {};
+                            for (const key of keyFields) {
+                                if (model[key] && model[key] !== '—') {
+                                    slimModel[key] = model[key];
+                                }
+                            }
+                            return slimModel;
+                        });
+
+                        try {
+                            const response = await fetch(`${API_BASE_URL}/ai_compare`, {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify(slimModelsData)
+                            });
+
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || `HTTP ${response.status} 错误`);
+                            }
+
+                            const data = await response.json();
+                            const formattedSummary = data.summary.replace(/\n/g, '<br>');
+                            aiCompareContent.innerHTML = formattedSummary;
+
+                        } catch (error) {
+                            console.error("AI 对比失败:", error);
+                            aiCompareContent.innerHTML = `<p class="text-red-500 font-semibold">❌ AI 总结生成失败：${error.message}</p>`;
+                            aiCompareLoaded = false;
+                        }
+                    }
+                } else {
+                    aiSummaryContainer.style.display = 'none';
+                    aiSummaryToggleButton.innerHTML = aiCompareLoaded ? '展开总结 &darr;' : '点此生成 &darr;';
+                }
+            };
+        } else {
+            aiSummarySection.style.display = 'none';
+        }
+    }
+
+    function groupBrandsByPinyin(brands) {
+        const grouped = {};
+        try {
+            if (typeof pinyinPro === 'undefined' || typeof pinyinPro.pinyin !== 'function') {
+                throw new Error("pinyin-pro 库加载失败");
+            }
+            brands.forEach(brandName => {
+                const firstLetter = pinyinPro.pinyin(brandName, {
+                    pattern: 'first',
+                    toneType: 'none'
+                }).charAt(0).toUpperCase();
+                const letter = (firstLetter >= 'A' && firstLetter <= 'Z') ? firstLetter : '#';
+                if (!grouped[letter]) grouped[letter] = [];
+                grouped[letter].push(brandName);
+            });
+            return Object.keys(grouped).sort((a, b) => a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b))
+                .reduce((acc, key) => {
+                    acc[key] = grouped[key].sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
+                    return acc;
+                }, {});
+        } catch (error) {
+            console.error(error);
+            return {'#': brands.sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'))};
+        }
+    }
+
+    function resetPanel(fromStep = 'brand') {
+        if (fromStep === 'brand') {
+            document.getElementById('mfg-list').innerHTML = '<p class="p-2 text-gray-500">请先选择品牌</p>';
+        }
+        if (fromStep === 'brand' || fromStep === 'mfg') {
+            document.getElementById('series-list').innerHTML = '<p class="p-2 text-gray-500">请先选择厂商</p>';
+        }
+        if (fromStep === 'brand' || fromStep === 'mfg' || fromStep === 'series') {
+            document.getElementById('model-list').innerHTML = '<p class="p-2 text-gray-500">请先选择车系</p>';
+        }
+    }
+
+    async function loadBrands() {
+        const listContainer = document.getElementById('brand-list');
+        try {
+            const response = await fetch(`${API_BASE_URL}/get-brands-and-manufacturers`);
+            if (!response.ok) throw new Error('无法加载品牌列表');
+            const data = await response.json();
+            brandManufacturerData = data;
+            groupedBrandsByPinyin = groupBrandsByPinyin(Object.keys(data));
+            let listHTML = '';
+            Object.keys(groupedBrandsByPinyin).forEach(letter => {
+                listHTML += `<div class="p-2 bg-gray-100 font-semibold text-gray-600">${letter}</div>`;
+                groupedBrandsByPinyin[letter].forEach(brandName => {
+                    listHTML += `<div class="list-item" data-brand="${brandName}">${brandName}</div>`;
+                });
+            });
+            listContainer.innerHTML = listHTML;
+            listContainer.querySelectorAll('.list-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    listContainer.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    const brandName = item.dataset.brand;
+                    loadManufacturers(brandName, brandManufacturerData[brandName]);
+                    document.getElementById('model-search-results').classList.add('hidden');
+                    lastAddPanelAction = {type: null, value: null};
+                });
+            });
+        } catch (e) {
+            listContainer.innerHTML = `<p class="p-2 text-red-500">${e.message}</p>`;
+        }
+    }
+
+    function loadManufacturers(brandName, manufacturers) {
+        resetPanel('brand');
+        const listContainer = document.getElementById('mfg-list');
+        if (!manufacturers || manufacturers.length === 0) {
+            listContainer.innerHTML = '<p class="p-2 text-gray-500">该品牌下无厂商</p>';
+            return;
+        }
+        let listHTML = `<div class="list-item" data-brand="${brandName}" data-mfg="所有厂商" style="font-weight: 600; color: #2563EB;">全部厂商</div>`;
+        manufacturers.forEach(mfgName => {
+            listHTML += `<div class="list-item" data-brand="${brandName}" data-mfg="${mfgName}">${mfgName}</div>`;
+        });
+        listContainer.innerHTML = listHTML;
+        listContainer.querySelectorAll('.list-item').forEach(item => {
+            item.addEventListener('click', () => {
+                listContainer.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                loadSeries(item.dataset.brand, item.dataset.mfg);
+            });
+        });
+    }
+
+    async function loadSeries(brandName, mfgName) {
+        resetPanel('mfg');
+        const listContainer = document.getElementById('series-list');
+        listContainer.innerHTML = '<p class="p-2 text-gray-500">加载中...</p>';
+        try {
+            const response = await fetch(`${API_BASE_URL}/get-series-by-manufacturer?brand=${encodeURIComponent(brandName)}&manufacturer=${encodeURIComponent(mfgName)}`);
+            if (!response.ok) throw new Error('无法加载车系列表');
+            const data = await response.json();
+            if (data.length === 0) {
+                listContainer.innerHTML = '<p class="p-2 text-gray-500">该厂商下无车系</p>';
+                return;
+            }
+            let listHTML = '';
+            data.forEach(seriesName => {
+                listHTML += `<div class="list-item" data-series="${seriesName}">${seriesName}</div>`;
+            });
+            listContainer.innerHTML = listHTML;
+            listContainer.querySelectorAll('.list-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    listContainer.querySelectorAll('.list-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    loadModels(item.dataset.series);
+                });
+            });
+        } catch (e) {
+            listContainer.innerHTML = `<p class="p-2 text-red-500">${e.message}</p>`;
+        }
+    }
+
+    async function loadModels(seriesName) {
+        lastAddPanelAction = {type: 'browse', value: seriesName};
+        resetPanel('series');
+        const listContainer = document.getElementById('model-list');
+        listContainer.innerHTML = '<p class="p-2 text-gray-500">加载中...</p>';
+        const comparisonList = getComparisonList();
+        try {
+            const response = await fetch(`${API_BASE_URL}/details?series_name=${encodeURIComponent(seriesName)}&per_page=100`);
+            if (!response.ok) throw new Error('无法加载车型列表');
+            const data = await response.json();
+            if (!data.hits || data.hits.length === 0) {
+                listContainer.innerHTML = '<p class="p-2 text-gray-500">该车系下无车型</p>';
+                return;
+            }
+            let listHTML = '';
+            data.hits.forEach(model => {
+                const modelId = model['车型名称'];
+                const modelPrice = model['基本信息_厂商指导价'] || '';
+                const isAdded = comparisonList.some(item => item.id === modelId);
+                listHTML += `
+                    <div class="list-item ${isAdded ? 'added' : ''}"
+                         data-model-id="${modelId}"
+                         data-model-name="${model['车型名称']}">
+                        <span class="font-medium">${model['车型名称']}</span>
+                        <span class="text-xs text-gray-500 block">${modelPrice}</span>
+                        <span class="status-text text-xs font-bold text-green-700 block">${isAdded ? '已在对比' : ''}</span>
+                    </div>`;
+            });
+            listContainer.innerHTML = listHTML;
+            listContainer.querySelectorAll('.list-item:not(.added)').forEach(item => {
+                item.addEventListener('click', () => {
+                    const success = addToComparison(item.dataset.modelId, item.dataset.modelName, seriesName);
+                    if (success) {
+                        item.classList.add('added');
+                        const statusEl = item.querySelector('.status-text');
+                        if (statusEl) statusEl.textContent = '已在对比';
+                        loadPage();
+                    }
+                });
+            });
+        } catch (e) {
+            listContainer.innerHTML = `<p class="p-2 text-red-500">${e.message}</p>`;
+        }
+    }
+
+    async function handleSearch(externalQuery = null) {
+        let query;
+        if (externalQuery !== null) {
+            query = externalQuery;
+        } else {
+            query = document.getElementById('model-search-input').value.trim();
+            lastAddPanelAction = {type: 'search', value: query};
+            resetPanel('brand');
+        }
+        const resultsContainer = document.getElementById('model-search-results');
+        if (!query) {
+            resultsContainer.innerHTML = '';
+            resultsContainer.classList.add('hidden');
+            lastAddPanelAction = {type: null, value: null};
+            return;
+        }
+        resultsContainer.innerHTML = '<p class="p-2 text-gray-500">搜索中...</p>';
+        resultsContainer.classList.remove('hidden');
+        const comparisonList = getComparisonList();
+        try {
+            const response = await fetch(`${API_BASE_URL}/search-models?q=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error('搜索失败');
+            const data = await response.json();
+            if (data.length === 0) {
+                resultsContainer.innerHTML = '<p class="p-2 text-gray-500">未找到相关车型</p>';
+                return;
+            }
+            let listHTML = '';
+            data.forEach(model => {
+                const modelId = model['车型名称'];
+                const seriesName = model['车系名称'];
+                const isAdded = comparisonList.some(item => item.id === modelId);
+                listHTML += `
+                    <div class="list-item ${isAdded ? 'added' : ''}"
+                         data-model-id="${modelId}"
+                         data-model-name="${model['车型名称']}"
+                         data-series-name="${seriesName}"> <span class="font-medium">${model['车型名称']}</span>
+                        <span class="text-xs text-gray-500 block">${model['车系名称']} | ${model['基本信息_厂商指导价'] || ''}</span>
+                        <span class="status-text text-xs font-bold text-green-700 block">${isAdded ? '已在对比' : ''}</span>
+                    </div>`;
+            });
+            resultsContainer.innerHTML = listHTML;
+            resultsContainer.querySelectorAll('.list-item:not(.added)').forEach(item => {
+                item.addEventListener('click', () => {
+                    const success = addToComparison(item.dataset.modelId, item.dataset.modelName, item.dataset.seriesName);
+                    if (success) {
+                        item.classList.add('added');
+                        const statusEl = item.querySelector('.status-text');
+                        if (statusEl) statusEl.textContent = '已在对比';
+                        loadPage();
+                    }
+                });
+            });
+        } catch (e) {
+            resultsContainer.innerHTML = `<p class="p-2 text-red-500">${e.message}</p>`;
+        }
+    }
+
+    function initAddModelPanel() {
+        document.getElementById('toggle-add-panel-btn').addEventListener('click', (e) => {
+            const panel = document.getElementById('add-model-panel');
+            const isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                e.target.textContent = '− 收起添加面板';
+                if (Object.keys(brandManufacturerData).length === 0) {
+                    loadBrands();
+                }
+            } else {
+                panel.classList.add('hidden');
+                e.target.textContent = '+ 添加新车型';
+            }
+        });
+        document.getElementById('model-search-btn').addEventListener('click', () => handleSearch(null));
+        document.getElementById('model-search-input').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') handleSearch(null);
+        });
+    }
+
+    async function loadPage() {
+        setupNavbar();
+        await loadUserFavorites();
+        const modelItems = getComparisonList();
+        if (modelItems.length === 0) {
+            renderEmptyState("您尚未添加任何车型到对比列表。请先浏览车型并点击“加入对比”。");
+        } else {
+            const initialState = document.getElementById('compare-initial-state');
+            initialState.innerHTML = '<p class="p-10 text-center text-gray-500">正在加载对比数据...</p>';
+            initialState.classList.remove('hidden');
+            document.getElementById('compare-table').classList.add('hidden');
+
+            const modelsData = await fetchAllModelData(modelItems);
+            if (modelsData.length > 0) {
+                renderComparisonTable(modelsData);
+            } else {
+                renderEmptyState("您选择的车型均无法加载数据。");
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPage();
+        initAddModelPanel();
+    });
+
+</script>
+</body>
+</html>

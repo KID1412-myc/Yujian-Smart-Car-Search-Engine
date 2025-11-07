@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8"/>
+    <title>关于本项目 - 驭·见智能搜索引擎</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .content-section ul,
+        .content-section ol {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .content-section ol {
+            list-style-type: decimal;
+        }
+
+        .content-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .content-section code {
+            background-color: #f3f4f6;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .content-section blockquote {
+            border-left: 4px solid #d1d5db;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            font-style: italic;
+            color: #4b5563;
+            background-color: #f9fafb;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .content-section .tech-highlight {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .content-section ol.list-decimal {
+            list-style-type: decimal;
+        }
+
+        .content-section ol.list-\[lower-roman\] {
+            list-style-type: lower-roman;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<header class="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-50">
+    <h1 class="text-3xl font-bold text-blue-600">驭·见</h1>
+    <nav id="navbar-container" class="space-x-6 text-gray-700">
+        <a href="车系.html" class="hover:text-blue-500">首页</a>
+        <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+        <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+        <a href="about.html" class="hover:text-blue-500 font-bold text-blue-600">关于</a>
+    </nav>
+</header>
+
+<main class="max-w-4xl mx-auto p-8 bg-white shadow-lg rounded-lg mt-8 mb-12">
+    <h1 class="text-4xl font-bold text-gray-800 mb-6 border-b pb-4">关于本项目</h1>
+
+    <section class="content-section mb-8">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-3">项目使命：打造“纯粹且智能”的购车顾问</h2>
+        <p class="text-gray-700 leading-relaxed mb-4">
+            传统的购车搜索体验存在诸多痛点：
+        </p>
+        <ol class="list-decimal list-inside text-gray-700 leading-relaxed space-y-2 mb-4">
+            <li>
+                <strong>传统搜索引擎（如百度）</strong>：搜索“30万带座椅通风的SUV”，得到的是网页链接和资讯文章。它无法直接回答“哪几款车符合条件？”。
+            </li>
+            <li>
+                <strong>垂直筛选应用（如易车）</strong>：它们拥有强大的数据库，但依赖用户手动、逐一点击筛选框（如“20-30万”、“SUV”、“座椅通风”）。它们擅长“精确筛选”，却难以理解混合了主观需求（如“适合家用”、“操控好”）的自然语言。
+            </li>
+            <li>
+                <strong>主流商业应用（如懂车帝等）</strong>：这类应用或网页的核心问题在于体验。它们充斥着大量“花里胡哨”的广告营销、视频流和资讯，严重干扰了用户“查找和对比”这一核心目标。
+            </li>
+        </ol>
+        <p class="text-gray-700 leading-relaxed mb-4">
+            本项目（驭见-智能车辆搜索引擎）旨在提供一个真正以用户为中心的解决方案。我们不仅是一个搜索引擎，更是一个纯粹、客观、无广告的智能分析师。
+        </p>
+        <p class="text-gray-700 leading-relaxed mb-4">
+            我们的核心优势体现在：
+        </p>
+        <ul class="mb-4">
+            <li class="mb-2">
+                <strong>优势一：界面简洁，体验纯粹</strong><br>
+                我们的界面设计严格遵循“服务于搜索”的原则，没有任何广告、营销弹窗或无关的视频流。用户可以专注于比较和发现，享受一个干净、高效的工具型体验。
+            </li>
+            <li class="mb-2">
+                <strong>优势二：数据驱动，客观中立</strong><br>
+                由于没有商业广告的压力，我们的AI 推荐是 100% 客观中立的。推荐的唯一标准是“哪款车最符合用户的需求”，而不是“哪个品牌付了推广费”。AI
+                的逻辑 纯粹为检索和总结服务。
+            </li>
+            <li>
+                <strong>优势三：深度RAG，双路分析</strong><br>
+                我们超越了“点选式”筛选。本项目利用检索增强生成 (RAG) 架构，能真正理解用户的自然语言意图。当用户提问时，系统会：
+                <ol class="list-[lower-roman] list-inside ml-4 mt-2 space-y-1">
+                    <li><strong>AI 意图解析</strong>：将“30万左右”、“座椅通风”、“家用SUV”等混合需求解析为结构化 JSON。</li>
+                    <li><strong>双路智能检索</strong>：同时从“参数库”检索硬核配置（召回 Top 60），并从“口碑库”检索真实评价（召回
+                        Top 20）。
+                    </li>
+                    <li><strong>AI 综合生成</strong>：最后，AI 会综合事实（参数）和观点（口碑），为用户生成“🏆 首选推荐”和“✅
+                        备选方案”，并解释为什么推荐。
+                    </li>
+                </ol>
+            </li>
+        </ul>
+        <p class="text-gray-700 leading-relaxed font-semibold">
+            我们的使命，是提供一个能一步到位“听懂、分析、总结”的、无广告干扰的智能购车顾问，让用户重新掌握选择的主动权。
+        </p>
+    </section>
+    <section class="content-section mb-8">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-3">数据采集与清洗 (ETL)</h2>
+        <p class="text-gray-700 leading-relaxed mb-4">
+            高质量的检索依赖于高质量的数据。我们的数据流程分为采集、融合、清洗和索引四个阶段：
+        </p>
+        <ol class="text-gray-700 leading-relaxed space-y-2">
+            <li><strong>数据采集</strong>: 使用 <code>Playwright</code> (异步) 和 <code>BeautifulSoup4</code>
+                编写爬虫，从“易车”网站采集车系的详细参数配置页和真实用户口碑页。
+            </li>
+            <li><strong>数据融合</strong>: 爬虫在本地将两种数据流（结构化参数和非结构化口碑）进行处理。为每个车系生成一个包含所有具体车型配置的
+                <code>DataFrame</code>，并额外创建一个包含该车系所有口碑（平均分、总评价）的独立汇总行。
+            </li>
+            <li><strong>数据清洗</strong>: 在导入 ES 之前，<code>import_data.py</code> 脚本 执行严格的数据清洗，例如：
+                <ul>
+                    <li><code>parse_price_to_numeric</code>: 将 "23.58万" 这样的文本转换为浮点数 <code>23.58</code>。
+                    </li>
+                    <li><code>clean_power_type</code> / <code>clean_body_type</code>: 将 "插电式混合动力"、"五门五座SUV"
+                        等脏数据统一为 "插电混动"、"SUV" 等标准标签。
+                    </li>
+                    <li><code>is_koubei_row</code>: 为口碑汇总行打上 <code>True</code> 标签，以便在检索时区分参数和口碑。
+                    </li>
+                </ul>
+            </li>
+            <li><strong>索引构建</strong>: 数据被批量导入 ES 索引 <code>yiche_cars</code>。该索引使用了一个名为 <code>my_custom_search_analyzer</code>
+                的自定义分析器，它结合了 <code>space_remover</code> 字符过滤器和 <code>ik_smart</code> 分词器，以优化中文和混合查询（如
+                "奔驰E级 E300L"）。
+            </li>
+        </ol>
+    </section>
+
+    <section class="content-section mb-8">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-3">核心架构</h2>
+        <p class="text-gray-700 leading-relaxed mb-4">
+            本系统采用了“传统检索 + AI 问答”的混合架构，以适应不同用户场景。
+        </p>
+
+        <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-2">1. 传统检索 (Faceted Search)</h3>
+        <p class="text-gray-700 leading-relaxed mb-2">
+            这是系统的主页和车系详情页所依赖的核心搜索引擎功能。该架构分为精细的“索引”和“检索”两个阶段：
+        </p>
+
+        <h4 class="text-lg font-semibold text-gray-700 mt-4 mb-2">索引策略 (Indexing)</h4>
+        <p class="text-gray-700 leading-relaxed mb-2">
+            我们为不同的数据用途设计了不同的索引方式：
+        </p>
+        <ul>
+            <li><strong>全文检索字段</strong>: 核心字段（如“品牌”、“车系名称”、“车型名称”）使用自定义的中文分析器 (<code>my_custom_search_analyzer</code>)
+                进行分词，以支持复杂的关键词搜索。
+            </li>
+            <li><strong>精确筛选字段</strong>: 用于分类检索的字段（如“动力类型”、“车身类型”、“基本信息_级别”）被设为 <code>keyword</code>
+                类型，以实现高性能的精确过滤。
+            </li>
+            <li><strong>多字段类型 (Multi-fields)</strong>: 核心字段（品牌、厂商、车系、车型）同时被索引为 <code>text</code>（用于分词搜索）和
+                <code>.keyword</code>（用于精确聚合和排序）。
+            </li>
+            <li><strong>数值与布尔型</strong>: 价格被映射为 <code>float</code>
+                用于排序和范围查询；<code>is_koubei_row</code> 被映射为 <code>boolean</code> 以在检索时分离车型与口碑数据。
+            </li>
+        </ul>
+
+        <h4 class="text-lg font-semibold text-gray-700 mt-4 mb-2">检索与排序策略 (Retrieval & Ranking)</h4>
+        <p class="text-gray-700 leading-relaxed mb-2">
+            检索逻辑 (<code>/search</code> 接口) 采用了多路召回和动态排序的策略，以确保用户总能最快找到想要的车型：
+        </p>
+
+        <ul>
+            <li><strong>最高权重 - 车系精确匹配</strong>: 用户搜索“奥迪A4L”时，优先返回“奥迪A4L”车系。</li>
+            <li><strong>高权重 - 车系前缀匹配</strong>: 搜索“元”时，能召回“元PLUS”。</li>
+            <li><strong>中高权重 - 车型/品牌前缀匹配</strong>: 搜索“E300”或“奔驰”，能召回相关车型。</li>
+            <li><strong>中权重 - 车系关键词匹配</strong>: 允许从车系名称中间搜索（如搜索 "A5" 能找到 "奥迪A5L"）。</li>
+            <li><strong>中低权重 - 车型关键词匹配</strong>: 允许用户从中间搜索（如搜索 "AMG" 能找到 "奔驰A级 AMG ...
+                4MATIC" 车型）。
+            </li>
+            <li><strong>兜底权重 - 模糊匹配</strong>: 允许一定的拼写错误（如 "A4L" 输错）。</li>
+        </ul>
+        <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-2">2. RAG 智能问答 (AI-Powered Q&A)</h3>
+        <p class="text-gray-700 leading-relaxed mb-2">
+            这是“AI 推荐”功能 (<code>second.html</code>) 的核心，由 <code>/ai_chat</code> 接口 完整实现 RAG
+            (Retrieval-Augmented Generation, 检索增强生成) 架构。
+        </p>
+
+        <ol class="list-decimal list-inside text-gray-700 leading-relaxed space-y-2 mt-4">
+            <li><strong>AI 意图解析</strong>：用户输入 (如 "30万带座椅通风的SUV") 被发送到 LLM 进行解析，输出结构化的
+                JSON（包含价格、车身类型、特性等）。
+            </li>
+            <li><strong>特征映射</strong>：系统利用 <code>feature_mapping.json</code> 将“座椅通风”等自然语言映射为 ES
+                数据库字段（如 <code>座椅配置_第一排座椅功能</code>）。
+            </li>
+            <li><strong>双路检索 (Retrieval)</strong>：
+                <ul>
+                    <li><strong>参数库检索</strong>：ES 根据 JSON 过滤器进行检索。此查询利用 ES 的高级评分功能，对符合用户预算（例如
+                        30 万左右）的车型给予更高的分数，召回最相关的 <strong>Top 60</strong> 款候选车型。
+                    </li>
+                    <li><strong>口碑库检索</strong>：同时，系统构建 <code>review_query</code> 查找相关车系的 <strong>Top
+                        20</strong> 条真实用户口碑。
+                    </li>
+                </ul>
+            </li>
+            <li><strong>上下文注入 (Augmentation)</strong>：将召回的车型详细配置和相关口碑组合成一个大型的上下文（<code>context_for_llm</code>）。
+            </li>
+            <li><strong>智能生成 (Generation)</strong>：将完整的上下文和 Prompt (包含“🏆 首选推荐”、“🥈 次选推荐：”等结构化输出规则)
+                发送给 DeepSeek API。
+            </li>
+            <li><strong>前端闭环</strong>：AI 返回结构化 JSON（包含回复文本和推荐的车型ID）。后端使用车型 ID 为前端生成精确的车型详情链接。
+            </li>
+        </ol>
+    </section>
+
+    <section class="content-section mb-8">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-3">技术栈 (Technology Stack)</h2>
+        <ul class="text-gray-700 leading-relaxed">
+            <li><strong>前端 (Frontend)</strong>：HTML5, TailwindCSS, Vanilla JavaScript (ES6+)</li>
+            <li><strong>后端 (Backend)</strong>：Python 3.13.2, Flask</li>
+            <li><strong>搜索引擎 (Search Engine)</strong>：Elasticsearch 8.11.3</li>
+            <li><strong>数据采集与清洗 (ETL)</strong>：Python, Playwright (异步), BeautifulSoup4, Pandas, Numpy</li>
+            <li><strong>索引策略 (Indexing)</strong>：自定义 ES 分析器 (<code>my_custom_search_analyzer</code>)，集成
+                <code>ik_smart</code> 分词器与 <code>space_remover</code> 字符过滤器
+            </li>
+            <li><strong>AI 大语言模型 (LLM)</strong>：DeepSeek API (<code>deepseek-chat</code>)</li>
+        </ul>
+    </section>
+
+    <section class="content-section mb-8">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-3">数据来源</h2>
+        <p class="text-gray-700 leading-relaxed">
+            本项目车辆参数及口碑数据均采集自 <a href="https://www.yiche.com/" target="_blank"
+                                                class="text-blue-500 hover:underline">易车 (Yiche.com)</a>。所有数据仅用于南京航空航天大学《搜索引擎原理与技术》课程项目设计演示，不作任何商业用途。
+        </p>
+    </section>
+
+    <section class="content-section">
+        <h2 class="text-2xl font-semibold text-blue-700 mb-3">团队信息</h2>
+        <ul class="text-gray-700 leading-relaxed">
+            <li><strong>成员</strong>：092301315马玉鹏、092301317伍浩聪、0S92301318马毅超、092301320叶梓浩</li>
+            <li><strong>班级</strong>：0923201班</li>
+            <li><strong>课程</strong>：《搜索引擎原理与技术》</li>
+            <li><strong>指导教师</strong>：马静</li>
+        </ul>
+    </section>
+</main>
+
+<footer class="bg-gray-800 text-gray-300 text-center py-6 mt-10">
+    © 2025 驭见 智能车辆搜索引擎 | 数据来源：易车
+</footer>
+<script src="config.js"></script>
+<script>
+    function setupNavbar() {
+        const navbarContainer = document.getElementById('navbar-container');
+        if (!navbarContainer) return;
+        const nickname = localStorage.getItem('userNickname');
+        const role = localStorage.getItem('userRole');
+        let adminLinkHTML = '';
+        if (role === 'admin' || role === 'core_admin') {
+            adminLinkHTML = '<a href="admin.html" class="font-medium text-purple-600 hover:underline">管理后台</a>';
+        }
+        if (nickname) {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="about.html" class="font-bold text-blue-600 hover:underline">关于</a>
+                ${adminLinkHTML}<span class="font-semibold text-gray-700">欢迎, ${nickname}</span>
+                <a href="profile.html" class="hover:text-blue-500">账户设置</a>
+                <button id="logout-button-nav" class="text-gray-600 hover:text-red-500">退出登录</button>
+            `;
+            const logoutButton = document.getElementById('logout-button-nav');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', handleLogout);
+            }
+        } else {
+            navbarContainer.innerHTML = `
+                <a href="车系.html" id="reset-homepage-link" class="hover:text-blue-500">首页</a>
+                <a href="favorites.html" class="hover:text-blue-500">我的收藏</a>
+                <a href="compare.html" class="hover:text-blue-500">车型对比</a>
+                <a href="about.html" class="font-bold text-blue-600 hover:underline">关于</a>
+                <a href="login.html" class="font-medium text-blue-600 hover:underline">登录</a>
+                <a href="register.html" class="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">注册</a>
+            `;
+        }
+    }
+
+    async function handleLogout() {
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('userRole');
+        try {
+            await fetch(`${API_BASE_URL}/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (error) {
+            console.error("退出登录请求失败 (不影响本地退出):", error);
+        }
+        window.location.reload();
+    }
+
+    document.addEventListener('DOMContentLoaded', setupNavbar);
+</script>
+
+</body>
+</html>
